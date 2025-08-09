@@ -1,6 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  ArrowUp, 
+  ArrowDown, 
+  MessageCircle, 
+  Share, 
+  Bookmark, 
+  MoreHorizontal,
+  TrendingUp,
+  Clock,
+  Users,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Image as ImageIcon
+} from 'lucide-react';
 
 interface User {
   id: string;
@@ -46,13 +64,16 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedComments, setExpandedComments] = useState<{[key: string]: boolean}>({});
+  const [activeTab, setActiveTab] = useState<'hot' | 'new' | 'top'>('hot');
+  const [commentVotes, setCommentVotes] = useState<{[key: string]: 'up' | 'down' | null}>({});
 
   useEffect(() => {
     fetchAllComments();
-  }, []);
+  }, [activeTab]);
 
   const fetchAllComments = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('auth_token');
       if (!token) {
         setError('Please login to view comments');
@@ -70,7 +91,23 @@ export default function ExplorePage() {
 
       if (response.ok) {
         const data: CommentsResponse = await response.json();
-        setComments(data.data);
+        // Sort comments based on active tab
+        let sortedComments = [...data.data];
+        switch (activeTab) {
+          case 'new':
+            sortedComments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            break;
+          case 'top':
+            sortedComments.sort((a, b) => b._count.replies - a._count.replies);
+            break;
+          default: // hot
+            sortedComments.sort((a, b) => {
+              const aScore = b._count.replies * 2 + (Date.now() - new Date(b.createdAt).getTime()) / 1000000;
+              const bScore = a._count.replies * 2 + (Date.now() - new Date(a.createdAt).getTime()) / 1000000;
+              return bScore - aScore;
+            });
+        }
+        setComments(sortedComments);
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Failed to fetch comments');
@@ -85,14 +122,13 @@ export default function ExplorePage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
+    return date.toLocaleDateString();
   };
 
   const navigateToEvent = (eventId: string) => {
@@ -106,12 +142,30 @@ export default function ExplorePage() {
     }));
   };
 
+  const handleVote = (commentId: string, voteType: 'up' | 'down') => {
+    setCommentVotes(prev => ({
+      ...prev,
+      [commentId]: prev[commentId] === voteType ? null : voteType
+    }));
+  };
+
+  const getTagColor = (tag: string) => {
+    const colors: { [key: string]: string } = {
+      web3: 'bg-blue-100 text-blue-800',
+      defi: 'bg-green-100 text-green-800',
+      nft: 'bg-purple-100 text-purple-800',
+      crypto: 'bg-yellow-100 text-yellow-800',
+      blockchain: 'bg-indigo-100 text-indigo-800'
+    };
+    return colors[tag] || 'bg-gray-100 text-gray-800';
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600 font-medium">Loading comments...</p>
+          <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading discussions...</p>
         </div>
       </div>
     );
@@ -119,203 +173,353 @@ export default function ExplorePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.href = '/event'}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            Back to Events
-          </button>
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="w-96 text-center">
+          <CardContent className="pt-6">
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button
+              onClick={() => window.location.href = '/auth/login'}
+              className="bg-black hover:bg-gray-800"
+            >
+              Login to Continue
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Explore All Comments
-          </h1>
-          <p className="text-gray-600">
-            Discover conversations happening across all events • {comments.length} comments
-          </p>
-        </div>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-6">
+              <h1 className="text-xl font-semibold">Explore Discussions</h1>
+              
+              <nav className="flex space-x-4">
+                {['hot', 'new', 'top'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab as any)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === tab
+                        ? 'bg-black text-white'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {tab === 'hot' && <TrendingUp className="w-4 h-4 mr-1 inline" />}
+                    {tab === 'new' && <Clock className="w-4 h-4 mr-1 inline" />}
+                    {tab === 'top' && <ArrowUp className="w-4 h-4 mr-1 inline" />}
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
-        {/* Comments List */}
-        {comments.length === 0 ? (
-          <div className="text-center py-16">
-            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Comments Found</h3>
-            <p className="text-gray-500">There are no comments to display at this time.</p>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = '/event/create'}
+              >
+                Create Event
+              </Button>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {comments.map((comment) => (
-              <div key={comment.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                {/* Event Header */}
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 cursor-pointer hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
-                  onClick={() => navigateToEvent(comment.event.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-white font-semibold text-lg">
-                        {comment.event.title}
-                      </h3>
-                      <p className="text-blue-100 text-sm">Click to view event</p>
-                    </div>
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
+        </div>
+      </div>
 
-                <div className="p-6">
-                  {/* Comment Header */}
-                  <div className="flex items-center space-x-3 mb-4">
-                    <img
-                      src={comment.user.avatar || '/api/placeholder/40/40'}
-                      alt={comment.user.name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-gray-900">
-                          {comment.user.name}
-                        </span>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-500">
-                          {formatDate(comment.createdAt)}
-                        </span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Main Feed */}
+          <div className="lg:col-span-2 space-y-4">
+            {comments.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-16">
+                  <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No Discussions Found</h3>
+                  <p className="text-gray-500 mb-4">Be the first to start a conversation!</p>
+                  <Button 
+                    onClick={() => window.location.href = '/event'}
+                    className="bg-black hover:bg-gray-800"
+                  >
+                    Browse Events
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              comments.map((comment) => (
+                <Card key={comment.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                  <CardContent className="p-0">
+                    
+                    {/* Event Header */}
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 cursor-pointer hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+                      onClick={() => navigateToEvent(comment.event.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-white font-semibold text-lg">
+                            {comment.event.title}
+                          </h3>
+                          <p className="text-blue-100 text-sm">Click to view event</p>
+                        </div>
+                        <Badge className="bg-white/20 text-white border-white/30">
+                          Discussion
+                        </Badge>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Comment Content */}
-                  <div className="mb-4">
-                    <p className="text-gray-800 leading-relaxed mb-4">
-                      {comment.content}
-                    </p>
+                    <div className="p-6">
+                      {/* Comment Header */}
+                      <div className="flex items-start space-x-3 mb-4">
+                        <div className="flex flex-col items-center space-y-1">
+                          <Button 
+                            variant={commentVotes[comment.id] === 'up' ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => handleVote(comment.id, 'up')}
+                            className="p-2"
+                          >
+                            <ArrowUp className="w-4 h-4" />
+                          </Button>
+                          <span className="font-medium text-sm">
+                            {(commentVotes[comment.id] === 'up' ? 1 : 0) - (commentVotes[comment.id] === 'down' ? 1 : 0)}
+                          </span>
+                          <Button 
+                            variant={commentVotes[comment.id] === 'down' ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => handleVote(comment.id, 'down')}
+                            className="p-2"
+                          >
+                            <ArrowDown className="w-4 h-4" />
+                          </Button>
+                        </div>
 
-                    {/* Comment Image */}
-                    {comment.image && (
-                      <div className="mb-4">
-                        <img
-                          src={comment.image}
-                          alt="Comment attachment"
-                          className="max-w-md max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-95 transition-opacity duration-200"
-                          onClick={() => window.open(comment.image, '_blank')}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Comment Stats & Actions */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span className="flex items-center space-x-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        <span>{comment._count.replies} {comment._count.replies === 1 ? 'reply' : 'replies'}</span>
-                      </span>
-                    </div>
-
-                    {comment.replies.length > 0 && (
-                      <button
-                        onClick={() => toggleReplies(comment.id)}
-                        className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors duration-200"
-                      >
-                        <span>
-                          {expandedComments[comment.id] ? 'Hide Replies' : 'View Replies'}
-                        </span>
-                        <svg 
-                          className={`w-4 h-4 transition-transform duration-200 ${expandedComments[comment.id] ? 'rotate-180' : ''}`}
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Replies */}
-                  {expandedComments[comment.id] && comment.replies.length > 0 && (
-                    <div className="mt-6 space-y-4">
-                      <div className="border-l-2 border-blue-200 pl-6">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="bg-gray-50 rounded-lg p-4 mb-4">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <img
-                                src={reply.user.avatar || '/api/placeholder/32/32'}
-                                alt={reply.user.name}
-                                className="w-8 h-8 rounded-full object-cover border border-gray-300"
-                              />
-                              <div>
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-medium text-gray-900 text-sm">
-                                    {reply.user.name}
-                                  </span>
-                                  <span className="text-gray-400">•</span>
-                                  <span className="text-xs text-gray-500">
-                                    {formatDate(reply.createdAt)}
-                                  </span>
-                                </div>
-                              </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                              <span className="text-white text-sm font-bold">
+                                {comment.user.name.charAt(0).toUpperCase()}
+                              </span>
                             </div>
-                            <p className="text-gray-800 text-sm leading-relaxed">
-                              {reply.content}
+                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                              <span className="font-medium text-foreground">u/{comment.user.name}</span>
+                              <span>•</span>
+                              <span>{formatDate(comment.createdAt)}</span>
+                            </div>
+                          </div>
+
+                          {/* Comment Content */}
+                          <div className="mb-4">
+                            <p className="text-foreground leading-relaxed mb-3">
+                              {comment.content}
                             </p>
-                            
-                            {/* Nested Replies */}
-                            {reply.childReplies.length > 0 && (
-                              <div className="mt-4 ml-6 space-y-3">
-                                {reply.childReplies.map((childReply) => (
-                                  <div key={childReply.id} className="bg-white rounded-lg p-3 border border-gray-200">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                      <img
-                                        src={childReply.user.avatar || '/api/placeholder/24/24'}
-                                        alt={childReply.user.name}
-                                        className="w-6 h-6 rounded-full object-cover"
-                                      />
-                                      <span className="font-medium text-gray-900 text-xs">
-                                        {childReply.user.name}
-                                      </span>
-                                      <span className="text-gray-400">•</span>
-                                      <span className="text-xs text-gray-500">
-                                        {formatDate(childReply.createdAt)}
-                                      </span>
-                                    </div>
-                                    <p className="text-gray-800 text-xs leading-relaxed">
-                                      {childReply.content}
-                                    </p>
-                                  </div>
-                                ))}
+
+                            {/* Comment Image */}
+                            {comment.image && (
+                              <div className="mb-4">
+                                <img
+                                  src={comment.image}
+                                  alt="Comment attachment"
+                                  className="max-w-md max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-95 transition-opacity duration-200"
+                                  onClick={() => window.open(comment.image, '_blank')}
+                                />
                               </div>
                             )}
                           </div>
-                        ))}
+
+                          {/* Actions */}
+                          <div className="flex items-center space-x-4">
+                            <Button variant="ghost" size="sm" className="space-x-1">
+                              <MessageCircle className="w-4 h-4" />
+                              <span>{comment._count.replies}</span>
+                            </Button>
+                            
+                            <Button variant="ghost" size="sm">
+                              <Share className="w-4 h-4" />
+                            </Button>
+                            
+                            <Button variant="ghost" size="sm">
+                              <Bookmark className="w-4 h-4" />
+                            </Button>
+
+                            {comment.replies.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleReplies(comment.id)}
+                                className="ml-auto text-blue-600 hover:text-blue-700"
+                              >
+                                {expandedComments[comment.id] ? 'Hide' : 'Show'} {comment.replies.length} replies
+                              </Button>
+                            )}
+                          </div>
+
+                          {/* Replies */}
+                          {expandedComments[comment.id] && comment.replies.length > 0 && (
+                            <div className="mt-6 space-y-4">
+                              <div className="border-l-2 border-muted pl-6">
+                                {comment.replies.map((reply) => (
+                                  <div key={reply.id} className="bg-muted/30 rounded-lg p-4 mb-4">
+                                    <div className="flex items-center space-x-3 mb-3">
+                                      <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <span className="text-gray-600 text-xs font-medium">
+                                          {reply.user.name.charAt(0).toUpperCase()}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <span className="font-medium text-sm">
+                                          u/{reply.user.name}
+                                        </span>
+                                        <span className="text-gray-400">•</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {formatDate(reply.createdAt)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <p className="text-sm leading-relaxed">
+                                      {reply.content}
+                                    </p>
+                                    
+                                    {/* Nested Replies */}
+                                    {reply.childReplies.length > 0 && (
+                                      <div className="mt-4 ml-6 space-y-3">
+                                        {reply.childReplies.map((childReply) => (
+                                          <div key={childReply.id} className="bg-background rounded-lg p-3 border">
+                                            <div className="flex items-center space-x-2 mb-2">
+                                              <div className="w-5 h-5 bg-gray-50 rounded-full flex items-center justify-center">
+                                                <span className="text-gray-500 text-xs">
+                                                  {childReply.user.name.charAt(0).toUpperCase()}
+                                                </span>
+                                              </div>
+                                              <span className="font-medium text-xs">
+                                                u/{childReply.user.name}
+                                              </span>
+                                              <span className="text-gray-400">•</span>
+                                              <span className="text-xs text-muted-foreground">
+                                                {formatDate(childReply.createdAt)}
+                                              </span>
+                                            </div>
+                                            <p className="text-xs leading-relaxed">
+                                              {childReply.content}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
-        )}
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            
+            {/* Trending Topics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5" />
+                  <span>Trending</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  { tag: 'web3', posts: 1.2 },
+                  { tag: 'defi', posts: 0.8 },
+                  { tag: 'nft', posts: 0.6 },
+                  { tag: 'blockchain', posts: 0.4 }
+                ].map((topic) => (
+                  <div key={topic.tag} className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium">#{topic.tag}</span>
+                      <p className="text-xs text-muted-foreground">{topic.posts}k discussions</p>
+                    </div>
+                    <Badge variant="outline" className={getTagColor(topic.tag)}>
+                      Trending
+                    </Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Community Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Community Activity</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total Discussions</span>
+                  <span className="font-semibold">{comments.length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Active Today</span>
+                  <span className="font-semibold">
+                    {comments.filter(c => {
+                      const today = new Date();
+                      const commentDate = new Date(c.createdAt);
+                      return commentDate.toDateString() === today.toDateString();
+                    }).length}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total Replies</span>
+                  <span className="font-semibold">
+                    {comments.reduce((sum, c) => sum + c._count.replies, 0)}
+                  </span>
+                </div>
+                <div className="border-t pt-4 mt-4">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => window.location.href = '/'}
+                  >
+                    Browse Events
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => window.location.href = '/event/create'}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Create Event
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => window.location.href = '/event/my'}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  My Events
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
