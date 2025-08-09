@@ -36,6 +36,7 @@ interface Reply {
 interface Comment {
   id: string;
   content: string;
+  image?: string;
   createdAt: string;
   updatedAt: string;
   user: User;
@@ -84,6 +85,10 @@ export default function EventDetailPage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [showReplies, setShowReplies] = useState<{[key: string]: boolean}>({});
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     if (eventId) {
@@ -99,7 +104,8 @@ export default function EventDetailPage() {
           'Content-Type': 'application/json',
         },
       });
-
+      
+    
       if (response.ok) {
         const data: EventResponse = await response.json();
         setEvent(data.data);
@@ -168,12 +174,27 @@ export default function EventDetailPage() {
     if (!newComment.trim()) return;
     
     try {
+      setUploading(true);
       const token = localStorage.getItem('auth_token');
       if (!token) {
         alert('Please login to add a comment');
         return;
       }
 
+      let imageUrl = null;
+      
+      // Step 1: Upload image if selected
+      if (selectedImage) {
+        try {
+          imageUrl = await uploadImage(selectedImage);
+        } catch (uploadError: any) {
+          alert(`Image upload failed: ${uploadError.message}`);
+          setUploading(false);
+          return;
+        }
+      }
+
+      // Step 2: Create comment with image URL
       const response = await fetch('http://localhost:3000/api/event/comment', {
         method: 'POST',
         headers: {
@@ -182,13 +203,16 @@ export default function EventDetailPage() {
         },
         body: JSON.stringify({
           content: newComment,
-          eventId: eventId
+          eventId: eventId,
+          image: imageUrl
         }),
       });
 
       if (response.ok) {
         alert('Comment added successfully!');
         setNewComment('');
+        setSelectedImage(null);
+        setImagePreview(null);
         fetchEventDetail(eventId); // Refresh event data
       } else {
         const error = await response.json();
@@ -196,8 +220,64 @@ export default function EventDetailPage() {
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      alert('Something went wrong');
+      alert('Something went wrong while posting comment');
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    // Upload to server and get URL back
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const token = localStorage.getItem('auth_token');
+    const response = await fetch('http://localhost:3000/api/upload/image', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Image upload failed');
+    }
+    
+    const result = await response.json();
+    return result.data.imageUrl; // Return the URL from server response
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Only JPEG, PNG, GIF, and WebP images are allowed');
+        e.target.value = ''; // Reset file input
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        e.target.value = ''; // Reset file input
+        return;
+      }
+
+      setSelectedImage(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
   };
 
   const handleAddReply = async (commentId: string) => {
@@ -576,28 +656,95 @@ export default function EventDetailPage() {
               marginBottom: '10px'
             }}
           />
+
+          {/* Image Preview */}
+          {imagePreview && (
+            <div style={{
+              position: 'relative',
+              display: 'inline-block',
+              marginBottom: '10px'
+            }}>
+              <img
+                src={imagePreview}
+                alt="Preview"
+                style={{
+                  maxWidth: '200px',
+                  maxHeight: '150px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd'
+                }}
+              />
+              <button
+                type="button"
+                onClick={removeImage}
+                style={{
+                  position: 'absolute',
+                  top: '5px',
+                  right: '5px',
+                  background: 'rgba(0,0,0,0.7)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '25px',
+                  height: '25px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <span style={{ fontSize: '12px', color: '#666' }}>
-              {newComment.length}/1000 characters
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <span style={{ fontSize: '12px', color: '#666' }}>
+                {newComment.length}/1000 characters
+              </span>
+              
+              {/* Image Upload Button */}
+              <label style={{
+                background: '#f0f0f0',
+                padding: '6px 12px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                border: '1px solid #ddd',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}>
+                📷 Add Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+
             <button
               onClick={handleAddComment}
-              disabled={!newComment.trim()}
+              disabled={!newComment.trim() || uploading}
               style={{
                 padding: '8px 16px',
-                backgroundColor: newComment.trim() ? '#3498db' : '#95a5a6',
+                backgroundColor: (newComment.trim() && !uploading) ? '#3498db' : '#95a5a6',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
                 fontSize: '14px',
-                cursor: newComment.trim() ? 'pointer' : 'not-allowed'
+                cursor: (newComment.trim() && !uploading) ? 'pointer' : 'not-allowed'
               }}
             >
-              Post Comment
+              {uploading ? 'Posting...' : 'Post Comment'}
             </button>
           </div>
         </div>
@@ -663,6 +810,47 @@ export default function EventDetailPage() {
                 }}>
                   {comment.content}
                 </p>
+
+                {/* Comment Image */}
+                {comment.image && !imageErrors[comment.id] && (
+                  <div style={{ marginBottom: '15px' }}>
+                    <img
+                      src={comment.image}
+                      alt="Comment attachment"
+                      style={{
+                        maxWidth: '300px',
+                        maxHeight: '200px',
+                        borderRadius: '8px',
+                        border: '1px solid #eee',
+                        cursor: 'pointer',
+                        objectFit: 'cover'
+                      }}
+                      onClick={() => {
+                        // Open image in new tab for full view
+                        window.open(comment.image, '_blank');
+                      }}
+                      onError={() => {
+                        setImageErrors(prev => ({ ...prev, [comment.id]: true }));
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Show error if image failed to load */}
+                {comment.image && imageErrors[comment.id] && (
+                  <div style={{
+                    marginBottom: '15px',
+                    padding: '10px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    color: '#6c757d',
+                    fontSize: '14px',
+                    textAlign: 'center'
+                  }}>
+                    📷 Image failed to load
+                  </div>
+                )}
 
                 {/* Comment Actions */}
                 <div style={{
