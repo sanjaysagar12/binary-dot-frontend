@@ -1,9 +1,29 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ethers } from 'ethers';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { 
+  ArrowLeft, 
+  Calendar, 
+  MapPin, 
+  Users, 
+  DollarSign, 
+  Image as ImageIcon,
+  Save,
+  Eye,
+  Wallet,
+  Lock,
+  AlertCircle
+} from 'lucide-react';
 
-// Contract ABI and address from your contract page
+// Contract ABI and address
 const CONTRACT_ABI = [
 	{
 		inputs: [],
@@ -134,6 +154,7 @@ const getEthereumContract = (): ethers.Contract | null => {
 };
 
 export default function CreateEventPage() {
+	const router = useRouter();
 	const [formData, setFormData] = useState<FormData>({
 		title: '',
 		description: '',
@@ -144,7 +165,7 @@ export default function CreateEventPage() {
 		maxParticipants: '',
 		prizePool: '',
 		numberOfPrizes: '',
-		tag: '',
+		tag: 'web3',
 	});
 
 	const [errors, setErrors] = useState<FormErrors>({});
@@ -154,7 +175,9 @@ export default function CreateEventPage() {
 	const [contractBalance, setContractBalance] = useState('0');
 	const [lockingFunds, setLockingFunds] = useState(false);
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+	const tags = ['web3', 'defi', 'nft', 'crypto', 'blockchain', 'gaming', 'sports', 'tech', 'music', 'art'];
+
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		const { name, value } = e.target;
 		setFormData(prev => ({
 			...prev,
@@ -165,7 +188,7 @@ export default function CreateEventPage() {
 		if (errors[name as keyof FormErrors]) {
 			setErrors(prev => ({
 				...prev,
-				[name]: '',
+				[name]: undefined,
 			}));
 		}
 	};
@@ -290,7 +313,7 @@ export default function CreateEventPage() {
 		}
 	};
 
-	const validateForm = (): FormErrors => {
+	const validateForm = (): boolean => {
 		const newErrors: FormErrors = {};
 
 		if (!formData.title.trim()) {
@@ -307,9 +330,7 @@ export default function CreateEventPage() {
 
 		if (!formData.endDate) {
 			newErrors.endDate = 'End date is required';
-		}
-
-		if (formData.startDate && formData.endDate && new Date(formData.startDate) >= new Date(formData.endDate)) {
+		} else if (formData.startDate && new Date(formData.endDate) <= new Date(formData.startDate)) {
 			newErrors.endDate = 'End date must be after start date';
 		}
 
@@ -322,15 +343,14 @@ export default function CreateEventPage() {
 			}
 		}
 
-		return newErrors;
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
 	};
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		const validationErrors = validateForm();
-		if (Object.keys(validationErrors).length > 0) {
-			setErrors(validationErrors);
+		if (!validateForm()) {
 			return;
 		}
 
@@ -351,7 +371,6 @@ export default function CreateEventPage() {
 			if (formData.prizePool && parseFloat(formData.prizePool) > 0 && walletConnected) {
 				try {
 					blockchainTxHash = await lockPrizePoolFunds(formData.prizePool);
-					alert(`Prize pool locked successfully! Transaction: ${blockchainTxHash}`);
 				} catch (lockError: any) {
 					alert(`Failed to lock prize pool: ${lockError.message}`);
 					return;
@@ -386,22 +405,82 @@ export default function CreateEventPage() {
 			});
 
 			if (response.ok) {
+				const result = await response.json();
 				alert('Event created successfully with prize pool locked in smart contract!');
-				// Clear form
-				setFormData({
-					title: '',
-					description: '',
-					image: '',
-					location: '',
-					startDate: '',
-					endDate: '',
-					maxParticipants: '',
-					prizePool: '',
-					numberOfPrizes: '',
-					tag: '',
-				});
-				// Optional: redirect to events list
-				window.location.href = '/event';
+				// Redirect to the created event
+				router.push(`/event/${result.data.id}`);
+			} else {
+				const errorData = await response.json();
+				alert(`Error creating event: ${errorData.message || 'Unknown error'}`);
+			}
+		} catch (error) {
+			console.error('Error creating event:', error);
+			alert('Something went wrong. Please try again.');
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	const handleButtonSubmit = async () => {
+		if (!validateForm()) {
+			return;
+		}
+
+		setIsSubmitting(true);
+
+		try {
+			// Get token from localStorage
+			const token = localStorage.getItem('auth_token');
+
+			if (!token) {
+				alert('Please login to create an event');
+				return;
+			}
+
+			let blockchainTxHash = null;
+
+			// If there's a prize pool, lock funds in smart contract first
+			if (formData.prizePool && parseFloat(formData.prizePool) > 0 && walletConnected) {
+				try {
+					blockchainTxHash = await lockPrizePoolFunds(formData.prizePool);
+				} catch (lockError: any) {
+					alert(`Failed to lock prize pool: ${lockError.message}`);
+					return;
+				}
+			}
+
+			// Prepare the data for event creation
+			const submitData = {
+				title: formData.title,
+				description: formData.description,
+				image: formData.image || undefined,
+				location: formData.location || undefined,
+				tag: formData.tag || 'general',
+				startDate: new Date(formData.startDate).toISOString(),
+				endDate: new Date(formData.endDate).toISOString(),
+				maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined,
+				prizePool: formData.prizePool ? parseFloat(formData.prizePool) : undefined,
+				numberOfPrizes: formData.numberOfPrizes ? parseInt(formData.numberOfPrizes) : undefined,
+				// Add blockchain transaction hash if funds were locked
+				blockchainTxHash: blockchainTxHash,
+				contractAddress: blockchainTxHash ? CONTRACT_ADDRESS : undefined,
+				walletAddress: walletConnected ? walletAddress : undefined,
+			};
+
+			const response = await fetch('http://localhost:3000/api/event/create', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify(submitData),
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				alert('Event created successfully with prize pool locked in smart contract!');
+				// Redirect to the created event
+				router.push(`/event/${result.data.id}`);
 			} else {
 				const errorData = await response.json();
 				alert(`Error creating event: ${errorData.message || 'Unknown error'}`);
@@ -415,277 +494,338 @@ export default function CreateEventPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
-			<div className="max-w-4xl mx-auto">
-				<div className="text-center mb-8">
-					<h1 className="text-4xl font-bold text-white mb-2">🎯 Create New Event</h1>
-					<p className="text-blue-200">Create events with blockchain-secured prize pools</p>
-				</div>
-
-				{/* Wallet Connection Section */}
-				{formData.prizePool && parseFloat(formData.prizePool) > 0 && (
-					<div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
-						<h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-							🔗 Wallet Connection (Required for Prize Pool)
-						</h2>
-
-						{!walletConnected ? (
-							<div className="text-center">
-								<button
-									onClick={connectWallet}
-									type="button"
-									className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-xl transition duration-200 transform hover:scale-105 shadow-lg"
-								>
-									🦊 Connect MetaMask to Lock Prize Pool
-								</button>
-								<p className="text-gray-300 text-sm mt-2">
-									Required to lock prize pool funds in smart contract
-								</p>
-							</div>
-						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-								<div>
-									<p className="text-gray-300">Connected Wallet:</p>
-									<p className="text-white font-mono break-all">{walletAddress}</p>
-								</div>
-								<div>
-									<p className="text-gray-300">Contract Balance:</p>
-									<p className="text-white font-bold">{contractBalance} AVAX</p>
-								</div>
-							</div>
-						)}
-						{errors.wallet && <p className="text-red-400 text-sm mt-2">{errors.wallet}</p>}
-					</div>
-				)}
-
-				<div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/20">
-					<form onSubmit={handleSubmit} className="space-y-6">
-						{/* Title */}
-						<div>
-							<label className="block text-gray-300 mb-2 font-semibold">
-								Event Title *
-							</label>
-							<input
-								type="text"
-								name="title"
-								value={formData.title}
-								onChange={handleChange}
-								className={`w-full p-3 bg-white/20 border ${errors.title ? 'border-red-400' : 'border-white/30'} rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20`}
-								placeholder="Enter event title"
-							/>
-							{errors.title && <span className="text-red-400 text-sm">{errors.title}</span>}
+		<div className="min-h-screen bg-white">
+			{/* Header */}
+			<div className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<div className="flex items-center justify-between h-16">
+						<div className="flex items-center space-x-4">
+							<Button 
+								variant="ghost" 
+								onClick={() => router.back()}
+								className="inline-flex items-center space-x-2"
+							>
+								<ArrowLeft className="w-4 h-4" />
+								<span>Back</span>
+							</Button>
+							
+							<div className="h-6 w-px bg-gray-300" />
+							
+							<h1 className="text-xl font-semibold">Create New Event</h1>
 						</div>
 
-						{/* Description */}
-						<div>
-							<label className="block text-gray-300 mb-2 font-semibold">
-								Description *
-							</label>
-							<textarea
-								name="description"
-								value={formData.description}
-								onChange={handleChange}
-								rows={4}
-								className={`w-full p-3 bg-white/20 border ${errors.description ? 'border-red-400' : 'border-white/30'} rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 resize-vertical`}
-								placeholder="Describe your event"
-							/>
-							{errors.description && <span className="text-red-400 text-sm">{errors.description}</span>}
-						</div>
-
-						{/* Image URL */}
-						<div>
-							<label className="block text-gray-300 mb-2 font-semibold">
-								Image URL (optional)
-							</label>
-							<input
-								type="url"
-								name="image"
-								value={formData.image}
-								onChange={handleChange}
-								className="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20"
-								placeholder="https://example.com/image.jpg"
-							/>
-						</div>
-
-						{/* Location and Tag Row */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-							<div>
-								<label className="block text-gray-300 mb-2 font-semibold">
-									Location (optional)
-								</label>
-								<input
-									type="text"
-									name="location"
-									value={formData.location}
-									onChange={handleChange}
-									className="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20"
-									placeholder="Event location"
-								/>
-							</div>
-
-							<div>
-								<label className="block text-gray-300 mb-2 font-semibold">
-									Category
-								</label>
-								<select
-									name="tag"
-									value={formData.tag}
-									onChange={handleChange}
-									className="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20"
-								>
-									<option value="general" className="bg-gray-800">
-										🎯 General
-									</option>
-									<option value="gaming" className="bg-gray-800">
-										🎮 Gaming
-									</option>
-									<option value="sports" className="bg-gray-800">
-										⚽ Sports
-									</option>
-									<option value="tech" className="bg-gray-800">
-										💻 Tech
-									</option>
-									<option value="music" className="bg-gray-800">
-										🎵 Music
-									</option>
-									<option value="art" className="bg-gray-800">
-										🎨 Art
-									</option>
-									<option value="food" className="bg-gray-800">
-										🍕 Food
-									</option>
-									<option value="education" className="bg-gray-800">
-										📚 Education
-									</option>
-									<option value="business" className="bg-gray-800">
-										💼 Business
-									</option>
-								</select>
-							</div>
-						</div>
-
-						{/* Date Range */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-							<div>
-								<label className="block text-gray-300 mb-2 font-semibold">
-									Start Date & Time *
-								</label>
-								<input
-									type="datetime-local"
-									name="startDate"
-									value={formData.startDate}
-									onChange={handleChange}
-									className={`w-full p-3 bg-white/20 border ${errors.startDate ? 'border-red-400' : 'border-white/30'} rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20`}
-								/>
-								{errors.startDate && <span className="text-red-400 text-sm">{errors.startDate}</span>}
-							</div>
-
-							<div>
-								<label className="block text-gray-300 mb-2 font-semibold">
-									End Date & Time *
-								</label>
-								<input
-									type="datetime-local"
-									name="endDate"
-									value={formData.endDate}
-									onChange={handleChange}
-									className={`w-full p-3 bg-white/20 border ${errors.endDate ? 'border-red-400' : 'border-white/30'} rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20`}
-								/>
-								{errors.endDate && <span className="text-red-400 text-sm">{errors.endDate}</span>}
-							</div>
-						</div>
-
-						{/* Event Settings */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<div>
-								<label className="block text-gray-300 mb-2 font-semibold">
-									Max Participants
-								</label>
-								<input
-									type="number"
-									name="maxParticipants"
-									value={formData.maxParticipants}
-									onChange={handleChange}
-									min="1"
-									className="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20"
-									placeholder="Unlimited"
-								/>
-							</div>
-
-							<div>
-								<label className="block text-gray-300 mb-2 font-semibold">
-									💰 Prize Pool (AVAX)
-								</label>
-								<input
-									type="number"
-									name="prizePool"
-									value={formData.prizePool}
-									onChange={handleChange}
-									min="0"
-									step="0.001"
-									className={`w-full p-3 bg-white/20 border ${errors.prizePool ? 'border-red-400' : 'border-white/30'} rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20`}
-									placeholder="0.0"
-								/>
-								{errors.prizePool && <span className="text-red-400 text-sm">{errors.prizePool}</span>}
-								{formData.prizePool && parseFloat(formData.prizePool) > 0 && (
-									<p className="text-yellow-300 text-xs mt-1">
-										🔒 This amount will be locked in smart contract
-									</p>
-								)}
-							</div>
-
-							<div>
-								<label className="block text-gray-300 mb-2 font-semibold">
-									Number of Prizes
-								</label>
-								<input
-									type="number"
-									name="numberOfPrizes"
-									value={formData.numberOfPrizes}
-									onChange={handleChange}
-									min="1"
-									className="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20"
-									placeholder="1"
-								/>
-							</div>
-						</div>
-
-						{/* Submit Button */}
-						<div className="pt-6">
-							<button
-								type="submit"
+						<div className="flex items-center space-x-2">
+							<Button variant="outline" size="sm">
+								<Eye className="w-4 h-4 mr-2" />
+								Preview
+							</Button>
+							
+							<Button 
+								onClick={handleButtonSubmit}
 								disabled={isSubmitting || lockingFunds}
-								className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-xl transition duration-200 transform hover:scale-105 shadow-lg"
+								className="bg-black hover:bg-gray-800"
+								size="sm"
 							>
 								{lockingFunds ? (
-									'🔒 Locking Prize Pool...'
+									<>
+										<Lock className="w-4 h-4 mr-2" />
+										Locking Prize...
+									</>
 								) : isSubmitting ? (
-									'📅 Creating Event...'
-								) : formData.prizePool && parseFloat(formData.prizePool) > 0 ? (
-									'🔒 Create Event & Lock Prize Pool'
+									'Creating...'
 								) : (
-									'📅 Create Event'
+									<>
+										<Save className="w-4 h-4 mr-2" />
+										Create Event
+									</>
 								)}
-							</button>
+							</Button>
 						</div>
+					</div>
+				</div>
+			</div>
 
-						{/* Info Section */}
-						{formData.prizePool && parseFloat(formData.prizePool) > 0 && (
-							<div className="bg-blue-500/20 rounded-lg p-4 mt-4">
-								<h3 className="text-blue-200 font-semibold mb-2">🔒 Blockchain Integration</h3>
-								<ul className="text-blue-100 text-sm space-y-1">
-									<li>• Prize pool will be locked in smart contract</li>
-									<li>• Funds are secured on Avalanche Fuji Testnet</li>
-									<li>• Only you can distribute prizes to winners</li>
-									<li>• Transaction hash will be stored with event</li>
-								</ul>
-								<div className="mt-3 text-xs text-blue-200">
-									<p>Contract: {CONTRACT_ADDRESS}</p>
+			<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+				<form onSubmit={handleSubmit} className="space-y-8">
+					
+					{/* Basic Information */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Basic Information</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							<div className="space-y-2">
+								<Label htmlFor="title">Event Title *</Label>
+								<Input
+									id="title"
+									name="title"
+									value={formData.title}
+									onChange={handleChange}
+									placeholder="Enter event title"
+									className={errors.title ? 'border-red-500' : ''}
+								/>
+								{errors.title && (
+									<p className="text-sm text-red-600">{errors.title}</p>
+								)}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="description">Description *</Label>
+								<Textarea
+									id="description"
+									name="description"
+									value={formData.description}
+									onChange={handleChange}
+									placeholder="Describe your event..."
+									rows={4}
+									className={errors.description ? 'border-red-500' : ''}
+								/>
+								{errors.description && (
+									<p className="text-sm text-red-600">{errors.description}</p>
+								)}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="image">Event Image URL</Label>
+								<div className="relative">
+									<ImageIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+									<Input
+										id="image"
+										name="image"
+										value={formData.image}
+										onChange={handleChange}
+										placeholder="https://example.com/image.jpg"
+										className="pl-10"
+									/>
 								</div>
 							</div>
-						)}
-					</form>
-				</div>
+
+							<div className="space-y-2">
+								<Label>Category</Label>
+								<div className="flex flex-wrap gap-2">
+									{tags.map((tag) => (
+										<Badge
+											key={tag}
+											variant={formData.tag === tag ? "default" : "outline"}
+											className={`cursor-pointer ${
+												formData.tag === tag 
+													? 'bg-black text-white' 
+													: 'hover:bg-gray-100'
+											}`}
+											onClick={() => setFormData(prev => ({ ...prev, tag }))}
+										>
+											{tag.toUpperCase()}
+										</Badge>
+									))}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Location & Timing */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Location & Timing</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							<div className="space-y-2">
+								<Label htmlFor="location">Location</Label>
+								<div className="relative">
+									<MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+									<Input
+										id="location"
+										name="location"
+										value={formData.location}
+										onChange={handleChange}
+										placeholder="Event location or 'Online'"
+										className="pl-10"
+									/>
+								</div>
+							</div>
+
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								<div className="space-y-2">
+									<Label htmlFor="startDate">Start Date *</Label>
+									<div className="relative">
+										<Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Input
+											id="startDate"
+											name="startDate"
+											type="datetime-local"
+											value={formData.startDate}
+											onChange={handleChange}
+											className={`pl-10 ${errors.startDate ? 'border-red-500' : ''}`}
+										/>
+									</div>
+									{errors.startDate && (
+										<p className="text-sm text-red-600">{errors.startDate}</p>
+									)}
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="endDate">End Date *</Label>
+									<div className="relative">
+										<Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Input
+											id="endDate"
+											name="endDate"
+											type="datetime-local"
+											value={formData.endDate}
+											onChange={handleChange}
+											className={`pl-10 ${errors.endDate ? 'border-red-500' : ''}`}
+										/>
+									</div>
+									{errors.endDate && (
+										<p className="text-sm text-red-600">{errors.endDate}</p>
+									)}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Prize Pool & Wallet Connection */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Prize Pool & Blockchain</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+								<div className="space-y-2">
+									<Label htmlFor="maxParticipants">Max Participants</Label>
+									<div className="relative">
+										<Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Input
+											id="maxParticipants"
+											name="maxParticipants"
+											type="number"
+											value={formData.maxParticipants}
+											onChange={handleChange}
+											placeholder="Unlimited"
+											className="pl-10"
+										/>
+									</div>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="prizePool">Prize Pool (AVAX)</Label>
+									<div className="relative">
+										<DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Input
+											id="prizePool"
+											name="prizePool"
+											type="number"
+											step="0.001"
+											value={formData.prizePool}
+											onChange={handleChange}
+											placeholder="0.0"
+											className={`pl-10 ${errors.prizePool ? 'border-red-500' : ''}`}
+										/>
+									</div>
+									{errors.prizePool && (
+										<p className="text-sm text-red-600">{errors.prizePool}</p>
+									)}
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="numberOfPrizes">Number of Prizes</Label>
+									<Input
+										id="numberOfPrizes"
+										name="numberOfPrizes"
+										type="number"
+										value={formData.numberOfPrizes}
+										onChange={handleChange}
+										placeholder="1"
+									/>
+								</div>
+							</div>
+
+							{/* Wallet Connection Section */}
+							{formData.prizePool && parseFloat(formData.prizePool) > 0 && (
+								<div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
+									<div className="flex items-center space-x-2 mb-4">
+										<Lock className="w-5 h-5 text-blue-600" />
+										<h3 className="font-semibold text-blue-900">Blockchain Integration Required</h3>
+									</div>
+
+									{!walletConnected ? (
+										<div className="space-y-3">
+											<div className="flex items-start space-x-2">
+												<AlertCircle className="w-4 h-4 text-blue-600 mt-0.5" />
+												<p className="text-sm text-blue-800">
+													Connect your wallet to lock prize pool funds in smart contract
+												</p>
+											</div>
+											<Button 
+												type="button"
+												onClick={connectWallet}
+												variant="outline"
+												className="border-blue-300 text-blue-700 hover:bg-blue-100"
+											>
+												<Wallet className="w-4 h-4 mr-2" />
+												Connect MetaMask
+											</Button>
+										</div>
+									) : (
+										<div className="space-y-3">
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+												<div>
+													<p className="text-blue-700 font-medium">Connected Wallet:</p>
+													<p className="text-blue-900 font-mono text-xs break-all">{walletAddress}</p>
+												</div>
+												<div>
+													<p className="text-blue-700 font-medium">Contract Balance:</p>
+													<p className="text-blue-900 font-semibold">{contractBalance} AVAX</p>
+												</div>
+											</div>
+											<div className="bg-blue-100 rounded p-3">
+												<p className="text-xs text-blue-800">
+													<Lock className="w-3 h-3 inline mr-1" />
+													{formData.prizePool} AVAX will be locked in smart contract: {CONTRACT_ADDRESS}
+												</p>
+											</div>
+										</div>
+									)}
+									{errors.wallet && (
+										<p className="text-sm text-red-600 mt-2">{errors.wallet}</p>
+									)}
+								</div>
+							)}
+						</CardContent>
+					</Card>
+
+					{/* Form Actions */}
+					<div className="flex items-center justify-between pt-6 border-t">
+						<Button 
+							type="button"
+							variant="outline"
+							onClick={() => router.back()}
+						>
+							Cancel
+						</Button>
+						
+						<Button 
+							type="submit"
+							disabled={isSubmitting || lockingFunds}
+							className="bg-black hover:bg-gray-800"
+						>
+							{lockingFunds ? (
+								<>
+									<Lock className="w-4 h-4 mr-2" />
+									Locking Prize Pool...
+								</>
+							) : isSubmitting ? (
+								'Creating Event...'
+							) : formData.prizePool && parseFloat(formData.prizePool) > 0 ? (
+								<>
+									<Lock className="w-4 h-4 mr-2" />
+									Create Event & Lock Prize Pool
+								</>
+							) : (
+								'Create Event'
+							)}
+						</Button>
+					</div>
+				</form>
 			</div>
 		</div>
 	);
