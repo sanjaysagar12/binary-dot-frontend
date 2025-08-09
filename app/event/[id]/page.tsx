@@ -2,6 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  ArrowLeft, 
+  Calendar, 
+  MapPin, 
+  Users, 
+  DollarSign, 
+  MessageCircle, 
+  Heart, 
+  Share2,
+  Bookmark,
+  ChevronUp,
+  ChevronDown,
+  Send,
+  MoreHorizontal,
+  Trophy,
+  Image as ImageIcon,
+  X
+} from 'lucide-react';
 
 interface Prize {
   id: string;
@@ -89,6 +110,9 @@ export default function EventDetailPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({});
+  const [isLiked, setIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [commentVotes, setCommentVotes] = useState<{[key: string]: 'up' | 'down' | null}>({});
 
   useEffect(() => {
     if (eventId) {
@@ -105,7 +129,6 @@ export default function EventDetailPage() {
         },
       });
       
-    
       if (response.ok) {
         const data: EventResponse = await response.json();
         setEvent(data.data);
@@ -133,12 +156,14 @@ export default function EventDetailPage() {
   };
 
   const formatShortDate = (dateString: string) => {
+    const now = new Date();
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    const diffInHours = Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    }
+    return `${Math.floor(diffInHours / 24)}d ago`;
   };
 
   const handleJoinEvent = async () => {
@@ -188,8 +213,7 @@ export default function EventDetailPage() {
         try {
           imageUrl = await uploadImage(selectedImage);
         } catch (uploadError: any) {
-          alert(`Image upload failed: ${uploadError.message}`);
-          setUploading(false);
+          alert('Failed to upload image: ' + uploadError.message);
           return;
         }
       }
@@ -255,15 +279,13 @@ export default function EventDetailPage() {
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
       if (!allowedTypes.includes(file.type)) {
-        alert('Only JPEG, PNG, GIF, and WebP images are allowed');
-        e.target.value = ''; // Reset file input
+        alert('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
         return;
       }
       
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
-        e.target.value = ''; // Reset file input
+        alert('Image file size must be less than 5MB');
         return;
       }
 
@@ -324,489 +346,519 @@ export default function EventDetailPage() {
     }));
   };
 
+  const handleVote = (commentId: string, voteType: 'up' | 'down') => {
+    setCommentVotes(prev => ({
+      ...prev,
+      [commentId]: prev[commentId] === voteType ? null : voteType
+    }));
+  };
+
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px', fontSize: '18px' }}>
-        Loading event details...
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="w-96 text-center">
+          <CardContent className="pt-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-black border-t-transparent mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading event...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <div style={{ color: '#e74c3c', fontSize: '18px', marginBottom: '20px' }}>
-          {error}
-        </div>
-        <button
-          onClick={() => window.location.href = '/event'}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#3498db',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Back to Events
-        </button>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="w-96 text-center">
+          <CardContent className="pt-6">
+            <h1 className="text-2xl font-semibold mb-4 text-red-600">Error</h1>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/event'}
+              className="inline-flex items-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Events</span>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px', fontSize: '18px' }}>
-        Event not found
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="w-96 text-center">
+          <CardContent className="pt-6">
+            <h1 className="text-2xl font-semibold mb-4">Event not found</h1>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/event'}
+              className="inline-flex items-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Events</span>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  const participantCount = event._count.participants;
-  const isEventFull = event.maxParticipants ? participantCount >= event.maxParticipants : false;
+  const participantCount = event?._count?.participants || 0;
+  const isEventFull = event?.maxParticipants ? participantCount >= event.maxParticipants : false;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Back Button */}
-        <button
-          onClick={() => window.location.href = '/event'}
-          className="mb-6 flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          <span className="font-medium">Back to Events</span>
-        </button>
-
-        {/* Event Header Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-          {/* Event Image */}
-          {event.image && (
-            <div className="relative h-64 md:h-80">
-              <img
-                src={event.image}
-                alt={event.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-            </div>
-          )}
-
-          <div className="p-6">
-            {/* Event Title and Creator */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                {event.title}
-              </h1>
-              <div className="flex items-center space-x-3 text-gray-600 mb-2">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-sm font-medium">
-                      {event.creator.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="font-medium text-gray-900">{event.creator.name}</span>
-                </div>
-              </div>
-              <div className="text-sm text-gray-500">
-                Created on {formatShortDate(event.createdAt)}
-              </div>
-            </div>
-
-            {/* Event Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-gray-600 mb-1">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="font-medium text-sm">Event Dates</span>
-                </div>
-                <div className="text-sm text-gray-700">
-                  <div><strong>Starts:</strong> {formatDate(event.startDate)}</div>
-                  <div><strong>Ends:</strong> {formatDate(event.endDate)}</div>
-                </div>
-              </div>
-
-              {event.location && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 text-gray-600 mb-1">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="font-medium text-sm">Location</span>
-                  </div>
-                  <div className="text-sm text-gray-700">{event.location}</div>
-                </div>
-              )}
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center space-x-2 text-gray-600 mb-1">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                  </svg>
-                  <span className="font-medium text-sm">Participants</span>
-                </div>
-                <div className="text-sm text-gray-700">
-                  {participantCount}{event.maxParticipants ? `/${event.maxParticipants}` : ''} registered
-                </div>
-              </div>
-
-              {event.prizePool && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 text-gray-600 mb-1">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                    <span className="font-medium text-sm">Prize Pool</span>
-                  </div>
-                  <div className="text-sm text-gray-700 font-semibold">${event.prizePool}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Join Button */}
-            <button
-              onClick={handleJoinEvent}
-              disabled={isEventFull || !event.isActive}
-              className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 ${
-                isEventFull || !event.isActive
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 active:transform active:scale-[0.98] shadow-sm hover:shadow-md'
-              }`}
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Button 
+              variant="ghost" 
+              onClick={() => window.location.href = '/event'}
+              className="inline-flex items-center space-x-2"
             >
-              {!event.isActive ? 'Event Inactive' : isEventFull ? 'Event Full' : 'Join Event'}
-            </button>
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Events</span>
+            </Button>
+            
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant={isBookmarked ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsBookmarked(!isBookmarked)}
+              >
+                <Bookmark className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm">
+                <Share2 className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Event Description */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span>Description</span>
-          </h2>
-          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {event.description}
-          </p>
-        </div>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Event Card */}
+            <Card>
+              {/* Event Image */}
+              {event.image && (
+                <div className="relative h-64 sm:h-80 rounded-t-lg overflow-hidden">
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      setImageErrors(prev => ({ ...prev, [event.id]: true }));
+                      (e.target as HTMLImageElement).src = '/api/placeholder/400/250';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <Badge className="absolute top-4 right-4 bg-black text-white">
+                    Event
+                  </Badge>
+                </div>
+              )}
 
-        {/* Prizes Section */}
-        {event.prizes.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-              <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3l14 9-14 9V3z" />
-              </svg>
-              <span>Prizes</span>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {event.prizes
-                .sort((a, b) => a.position - b.position)
-                .map((prize) => (
-                  <div
-                    key={prize.id}
-                    className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 text-center relative overflow-hidden"
-                  >
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-400 rounded-bl-full opacity-20"></div>
-                    <div className="relative z-10">
-                      <div className="text-3xl font-bold text-yellow-600 mb-2">
-                        #{prize.position}
-                      </div>
-                      <div className="text-lg font-semibold text-gray-900 mb-2">
-                        {prize.title}
-                      </div>
-                      <div className="text-2xl font-bold text-green-600">
-                        ${prize.amount}
+              <CardContent className="p-6 space-y-6">
+                {/* Event Header */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">
+                        {event.creator.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">r/Events</span>
+                        <span>•</span>
+                        <span>Posted by u/{event.creator.name}</span>
+                        <span>•</span>
+                        <span>{formatShortDate(event.createdAt)}</span>
                       </div>
                     </div>
                   </div>
-                ))}
-            </div>
-          </div>
-        )}
 
-        {/* Participants Section */}
-        {event.participants.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-              </svg>
-              <span>Participants ({event.participants.length})</span>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {event.participants.map((participant) => (
-                <div
-                  key={participant.id}
-                  className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <img
-                    src={participant.user.avatar || '/api/placeholder/40/40'}
-                    alt={participant.user.name}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm truncate">
-                      {participant.user.name}
+                  <h1 className="text-3xl font-bold leading-tight">{event.title}</h1>
+                  <p className="text-muted-foreground leading-relaxed text-lg">{event.description}</p>
+                </div>
+
+                {/* Event Details Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <Card className="p-4">
+                    <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                      <Calendar className="w-4 h-4" />
+                      <span className="text-xs font-medium uppercase tracking-wide">Date</span>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      Joined {formatShortDate(participant.joinedAt)}
+                    <div className="text-sm font-semibold">{formatDate(event.startDate)}</div>
+                  </Card>
+
+                  {event.location && (
+                    <Card className="p-4">
+                      <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                        <MapPin className="w-4 h-4" />
+                        <span className="text-xs font-medium uppercase tracking-wide">Location</span>
+                      </div>
+                      <div className="text-sm font-semibold">{event.location}</div>
+                    </Card>
+                  )}
+
+                  <Card className="p-4">
+                    <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                      <Users className="w-4 h-4" />
+                      <span className="text-xs font-medium uppercase tracking-wide">Attendees</span>
+                    </div>
+                    <div className="text-sm font-semibold">
+                      {participantCount}{event.maxParticipants ? `/${event.maxParticipants}` : ''}
+                    </div>
+                  </Card>
+
+                  {event.prizePool && (
+                    <Card className="p-4 bg-black text-white">
+                      <div className="flex items-center space-x-2 text-gray-300 mb-2">
+                        <DollarSign className="w-4 h-4" />
+                        <span className="text-xs font-medium uppercase tracking-wide">Prize Pool</span>
+                      </div>
+                      <div className="text-sm font-semibold">${event.prizePool.toLocaleString()}</div>
+                    </Card>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="flex items-center space-x-4">
+                    {/* <div className="flex items-center bg-muted rounded-full">
+                      <Button variant="ghost" size="sm" className="rounded-l-full px-3">
+                        <ChevronUp className="w-4 h-4" />
+                      </Button>
+                      <span className="px-3 py-2 text-sm font-medium">128</span>
+                      <Button variant="ghost" size="sm" className="rounded-r-full px-3">
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </div> */}
+
+                    <Button variant="ghost" size="sm" className="space-x-2">
+                      <MessageCircle className="w-4 h-4" />
+                      <span>{event.comments.length}</span>
+                    </Button>
+
+                    <Button 
+                      variant={isLiked ? "default" : "ghost"} 
+                      size="sm"
+                      onClick={() => setIsLiked(!isLiked)}
+                      className="space-x-2"
+                    >
+                      <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                      <span>Like</span>
+                    </Button>
+                  </div>
+
+                  {!isEventFull && (
+                    <Button onClick={handleJoinEvent} className="bg-black hover:bg-gray-800">
+                      Join Event
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Comment Input */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex space-x-3">
+                  <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">U</span>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Share your thoughts about this event..."
+                      rows={3}
+                      className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-black focus:border-black"
+                    />
+                    
+                    {/* Image Preview */}
+                    {imagePreview && (
+                      <div className="relative inline-block">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="h-32 w-32 object-cover rounded-lg border"
+                        />
+                        <button
+                          onClick={removeImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center space-x-2">
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                            className="hidden"
+                          />
+                          <Button variant="ghost" size="sm" className="space-x-2">
+                            <ImageIcon className="w-4 h-4" />
+                            <span>Add Image</span>
+                          </Button>
+                        </label>
+                      </div>
+                      
+                      <Button
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim() || uploading}
+                        className="space-x-2 bg-black hover:bg-gray-800"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span>{uploading ? 'Posting...' : 'Post Comment'}</span>
+                      </Button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </CardContent>
+            </Card>
 
-        {/* Comments Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center space-x-2">
-            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            <span>Comments ({event._count.comments})</span>
-          </h2>
-
-          {/* Add Comment Form */}
-          <div className="mb-8 p-5 bg-gray-50 rounded-xl border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Share your thoughts
-            </h3>
-            
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="What's on your mind about this event?"
-              maxLength={1000}
-              className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
-              rows={4}
-            />
-
-            {/* Image Preview */}
-            {imagePreview && (
-              <div className="mt-4 relative inline-block">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="max-w-xs max-h-40 rounded-lg border border-gray-300 shadow-sm"
-                />
-                <button
-                  type="button"
-                  onClick={removeImage}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors duration-200"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-500">
-                  {newComment.length}/1000
-                </span>
-                
-                {/* Image Upload Button */}
-                <label className="flex items-center space-x-2 px-3 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors duration-200">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-sm font-medium text-gray-700">Photo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-
-              <button
-                onClick={handleAddComment}
-                disabled={!newComment.trim() || uploading}
-                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  newComment.trim() && !uploading
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 active:transform active:scale-95 shadow-sm hover:shadow-md'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {uploading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    <span>Posting...</span>
-                  </div>
-                ) : (
-                  'Post Comment'
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Comments List */}
-          {event.comments.length === 0 ? (
-            <div className="text-center py-12">
-              <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <p className="text-gray-500 text-lg font-medium">No comments yet</p>
-              <p className="text-gray-400 text-sm mt-1">Be the first to share your thoughts!</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
+            {/* Comments */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Comments ({event.comments.length})</h3>
+              
               {event.comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                  {/* Comment Header */}
-                  <div className="flex items-center space-x-3 mb-4">
-                    <img
-                      src={comment.user.avatar || '/api/placeholder/40/40'}
-                      alt={comment.user.name}
-                      className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                    />
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-900">
-                        {comment.user.name}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {formatShortDate(comment.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Comment Content */}
-                  <p className="text-gray-800 leading-relaxed mb-4">
-                    {comment.content}
-                  </p>
-
-                  {/* Comment Image */}
-                  {comment.image && !imageErrors[comment.id] && (
-                    <div className="mb-4">
-                      <img
-                        src={comment.image}
-                        alt="Comment attachment"
-                        className="max-w-md max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-95 transition-opacity duration-200"
-                        onClick={() => window.open(comment.image, '_blank')}
-                        onError={() => {
-                          setImageErrors(prev => ({ ...prev, [comment.id]: true }));
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Image Error State */}
-                  {comment.image && imageErrors[comment.id] && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <div className="flex items-center space-x-2 text-red-600">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-sm font-medium">Image failed to load</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Comment Actions */}
-                  <div className="flex items-center space-x-4 mb-4">
-                    <button
-                      onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                      className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors duration-200"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                      </svg>
-                      <span>{replyingTo === comment.id ? 'Cancel' : 'Reply'}</span>
-                    </button>
-                    
-                    {comment.replies.length > 0 && (
-                      <button
-                        onClick={() => toggleReplies(comment.id)}
-                        className="flex items-center space-x-1 text-gray-600 hover:text-gray-700 font-medium text-sm transition-colors duration-200"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        <span>
-                          {showReplies[comment.id] ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
-                        </span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Reply Form */}
-                  {replyingTo === comment.id && (
-                    <div className="mb-4 p-4 bg-white rounded-lg border border-gray-300">
-                      <textarea
-                        value={replyContent}
-                        onChange={(e) => setReplyContent(e.target.value)}
-                        placeholder="Write a reply..."
-                        maxLength={1000}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
-                        rows={3}
-                      />
-                      <div className="flex items-center justify-end space-x-3 mt-3">
-                        <button
-                          onClick={() => {
-                            setReplyingTo(null);
-                            setReplyContent('');
-                          }}
-                          className="px-4 py-2 text-gray-600 hover:text-gray-700 font-medium text-sm transition-colors duration-200"
+                <Card key={comment.id}>
+                  <CardContent className="p-4">
+                    <div className="flex space-x-3">
+                      <div className="flex flex-col items-center space-y-1">
+                        <Button
+                          variant={commentVotes[comment.id] === 'up' ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => handleVote(comment.id, 'up')}
                         >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handleAddReply(comment.id)}
-                          disabled={!replyContent.trim()}
-                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                            replyContent.trim()
-                              ? 'bg-blue-600 text-white hover:bg-blue-700 active:transform active:scale-95'
-                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          }`}
+                          <ChevronUp className="w-4 h-4" />
+                        </Button>
+                        <span className="text-xs font-medium">0</span>
+                        <Button
+                          variant={commentVotes[comment.id] === 'down' ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => handleVote(comment.id, 'down')}
                         >
-                          Reply
-                        </button>
+                          <ChevronDown className="w-4 h-4" />
+                        </Button>
                       </div>
-                    </div>
-                  )}
 
-                  {/* Replies */}
-                  {showReplies[comment.id] && comment.replies.length > 0 && (
-                    <div className="ml-6 pl-6 border-l-2 border-gray-300 space-y-4">
-                      {comment.replies.map((reply) => (
-                        <div key={reply.id} className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <img
-                              src={reply.user.avatar || '/api/placeholder/32/32'}
-                              alt={reply.user.name}
-                              className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">u/{comment.user.name}</span>
+                          <span className="text-xs text-muted-foreground">{formatShortDate(comment.createdAt)}</span>
+                        </div>
+                        
+                        <p className="text-muted-foreground leading-relaxed">{comment.content}</p>
+                        
+                        {/* Comment Image */}
+                        {comment.image && (
+                          <div className="mt-3">
+                            <img 
+                              src={comment.image} 
+                              alt="Comment attachment" 
+                              className="max-w-md h-auto rounded-lg border"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
                             />
-                            <div>
-                              <div className="font-medium text-gray-900 text-sm">
-                                {reply.user.name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {formatShortDate(reply.createdAt)}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                          >
+                            Reply
+                          </Button>
+                          <Button variant="ghost" size="sm">Share</Button>
+                          <Button variant="ghost" size="sm">Report</Button>
+                          {comment.replies.length > 0 && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => toggleReplies(comment.id)}
+                            >
+                              {showReplies[comment.id] ? 'Hide' : 'Show'} {comment.replies.length} replies
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Reply Input */}
+                        {replyingTo === comment.id && (
+                          <div className="mt-4 ml-6 border-l-2 border-muted pl-4">
+                            <div className="flex space-x-2">
+                              <textarea
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                placeholder="Write a reply..."
+                                rows={2}
+                                className="flex-1 p-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-black focus:border-black"
+                              />
+                              <div className="flex flex-col space-y-2">
+                                <Button
+                                  onClick={() => handleAddReply(comment.id)}
+                                  disabled={!replyContent.trim()}
+                                  size="sm"
+                                  className="bg-black hover:bg-gray-800"
+                                >
+                                  Reply
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    setReplyingTo(null);
+                                    setReplyContent('');
+                                  }}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  Cancel
+                                </Button>
                               </div>
                             </div>
                           </div>
-                          <p className="text-gray-800 text-sm leading-relaxed">
-                            {reply.content}
-                          </p>
-                        </div>
-                      ))}
+                        )}
+
+                        {/* Replies */}
+                        {showReplies[comment.id] && comment.replies && comment.replies.length > 0 && (
+                          <div className="mt-4 ml-6 border-l-2 border-muted pl-4 space-y-4">
+                            {comment.replies.map((reply) => (
+                              <div key={reply.id} className="flex space-x-3">
+                                <div className="flex flex-col items-center space-y-1">
+                                  <Button variant="ghost" size="sm">
+                                    <ChevronUp className="w-3 h-3" />
+                                  </Button>
+                                  <span className="text-xs font-medium">0</span>
+                                  <Button variant="ghost" size="sm">
+                                    <ChevronDown className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium text-sm">u/{reply.user.name}</span>
+                                    <span className="text-xs text-muted-foreground">{formatShortDate(reply.createdAt)}</span>
+                                  </div>
+                                  <p className="text-muted-foreground text-sm leading-relaxed">{reply.content}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Event Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-sm">Created</span>
+                  <span className="font-medium text-sm">{formatShortDate(event.createdAt)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-sm">Participants</span>
+                  <span className="font-medium text-sm">{participantCount}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-sm">Comments</span>
+                  <span className="font-medium text-sm">{event.comments.length}</span>
+                </div>
+                {event.prizePool && (
+                  <>
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground text-sm">Prize Pool</span>
+                        <span className="font-semibold">${event.prizePool.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Prizes */}
+            {event.prizes && event.prizes.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Trophy className="w-5 h-5" />
+                    <span>Prizes</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {event.prizes.sort((a, b) => a.position - b.position).map((prize) => (
+                    <div key={prize.id} className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{prize.title}</span>
+                      <Badge variant="outline">${prize.amount.toLocaleString()}</Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recent Participants */}
+            {event.participants.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Participants</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {event.participants.slice(0, 5).map((participant) => (
+                    <div key={participant.id} className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                        <span className="text-gray-600 text-xs font-medium">
+                          {participant.user.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-sm font-medium">u/{participant.user.name}</span>
+                        <div className="text-xs text-muted-foreground">
+                          Joined {formatShortDate(participant.joinedAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {event.participants.length > 5 && (
+                    <div className="text-xs text-muted-foreground pt-2 border-t">
+                      +{event.participants.length - 5} more participants
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
