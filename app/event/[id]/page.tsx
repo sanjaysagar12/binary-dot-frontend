@@ -80,6 +80,10 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [showReplies, setShowReplies] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     if (eventId) {
@@ -158,6 +162,86 @@ export default function EventDetailPage() {
       console.error('Error joining event:', error);
       alert('Something went wrong');
     }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Please login to add a comment');
+        return;
+      }
+
+      const response = await fetch('http://localhost:3000/api/event/comment', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: newComment,
+          eventId: eventId
+        }),
+      });
+
+      if (response.ok) {
+        alert('Comment added successfully!');
+        setNewComment('');
+        fetchEventDetail(eventId); // Refresh event data
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to add comment');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert('Something went wrong');
+    }
+  };
+
+  const handleAddReply = async (commentId: string) => {
+    if (!replyContent.trim()) return;
+    
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Please login to add a reply');
+        return;
+      }
+
+      const response = await fetch('http://localhost:3000/api/event/comment/reply', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: replyContent,
+          commentId: commentId
+        }),
+      });
+
+      if (response.ok) {
+        alert('Reply added successfully!');
+        setReplyContent('');
+        setReplyingTo(null);
+        fetchEventDetail(eventId); // Refresh event data
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to add reply');
+      }
+    } catch (error) {
+      console.error('Error adding reply:', error);
+      alert('Something went wrong');
+    }
+  };
+
+  const toggleReplies = (commentId: string) => {
+    setShowReplies(prev => ({
+      ...prev,
+      [commentId]: !prev[commentId]
+    }));
   };
 
   if (loading) {
@@ -456,35 +540,99 @@ export default function EventDetailPage() {
       )}
 
       {/* Comments Section */}
-      {event.comments.length > 0 && (
+      <div style={{
+        backgroundColor: '#fff',
+        borderRadius: '8px',
+        padding: '30px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+      }}>
+        <h2 style={{ margin: '0 0 20px 0', color: '#333' }}>
+          💬 Comments ({event._count.comments})
+        </h2>
+
+        {/* Add Comment Form */}
         <div style={{
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          padding: '30px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+          marginBottom: '30px',
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px'
         }}>
-          <h2 style={{ margin: '0 0 20px 0', color: '#333' }}>
-            💬 Comments ({event._count.comments})
-          </h2>
+          <h3 style={{ margin: '0 0 15px 0', color: '#333', fontSize: '16px' }}>
+            Add a Comment
+          </h3>
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write your comment here..."
+            maxLength={1000}
+            style={{
+              width: '100%',
+              minHeight: '80px',
+              padding: '12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px',
+              resize: 'vertical',
+              marginBottom: '10px'
+            }}
+          />
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span style={{ fontSize: '12px', color: '#666' }}>
+              {newComment.length}/1000 characters
+            </span>
+            <button
+              onClick={handleAddComment}
+              disabled={!newComment.trim()}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: newComment.trim() ? '#3498db' : '#95a5a6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                cursor: newComment.trim() ? 'pointer' : 'not-allowed'
+              }}
+            >
+              Post Comment
+            </button>
+          </div>
+        </div>
+
+        {/* Comments List */}
+        {event.comments.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px',
+            color: '#666',
+            fontStyle: 'italic'
+          }}>
+            No comments yet. Be the first to comment!
+          </div>
+        ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {event.comments.map((comment) => (
               <div key={comment.id} style={{
                 border: '1px solid #eee',
                 borderRadius: '8px',
-                padding: '15px'
+                padding: '20px'
               }}>
+                {/* Comment Header */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
-                  marginBottom: '10px'
+                  gap: '12px',
+                  marginBottom: '12px'
                 }}>
                   <img
-                    src={comment.user.avatar || '/api/placeholder/32/32'}
+                    src={comment.user.avatar || '/api/placeholder/40/40'}
                     alt={comment.user.name}
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '40px',
+                      height: '40px',
                       borderRadius: '50%',
                       objectFit: 'cover'
                     }}
@@ -505,60 +653,169 @@ export default function EventDetailPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Comment Content */}
                 <p style={{
-                  margin: '0 0 10px 0',
+                  margin: '0 0 15px 0',
                   color: '#333',
-                  lineHeight: '1.5'
+                  lineHeight: '1.5',
+                  fontSize: '14px'
                 }}>
                   {comment.content}
                 </p>
-                {comment.replies.length > 0 && (
+
+                {/* Comment Actions */}
+                <div style={{
+                  display: 'flex',
+                  gap: '15px',
+                  marginBottom: '15px'
+                }}>
+                  <button
+                    onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#3498db',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      padding: '0'
+                    }}
+                  >
+                    {replyingTo === comment.id ? 'Cancel Reply' : 'Reply'}
+                  </button>
+                  
+                  {comment.replies.length > 0 && (
+                    <button
+                      onClick={() => toggleReplies(comment.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#666',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        padding: '0'
+                      }}
+                    >
+                      {showReplies[comment.id] ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Reply Form */}
+                {replyingTo === comment.id && (
+                  <div style={{
+                    marginBottom: '15px',
+                    padding: '15px',
+                    backgroundColor: '#f1f3f4',
+                    borderRadius: '6px'
+                  }}>
+                    <textarea
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      placeholder="Write your reply..."
+                      maxLength={1000}
+                      style={{
+                        width: '100%',
+                        minHeight: '60px',
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        marginBottom: '8px'
+                      }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      gap: '8px'
+                    }}>
+                      <button
+                        onClick={() => handleAddReply(comment.id)}
+                        disabled={!replyContent.trim()}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: replyContent.trim() ? '#3498db' : '#95a5a6',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          cursor: replyContent.trim() ? 'pointer' : 'not-allowed'
+                        }}
+                      >
+                        Post Reply
+                      </button>
+                      <button
+                        onClick={() => {
+                          setReplyingTo(null);
+                          setReplyContent('');
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: '#6c757d',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Replies */}
+                {showReplies[comment.id] && comment.replies.length > 0 && (
                   <div style={{
                     marginLeft: '20px',
-                    paddingLeft: '15px',
-                    borderLeft: '2px solid #eee'
+                    paddingLeft: '20px',
+                    borderLeft: '3px solid #e9ecef'
                   }}>
                     {comment.replies.map((reply) => (
                       <div key={reply.id} style={{
-                        marginTop: '10px',
-                        padding: '10px',
+                        marginTop: '15px',
+                        padding: '15px',
                         backgroundColor: '#f8f9fa',
                         borderRadius: '6px'
                       }}>
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          marginBottom: '5px'
+                          gap: '10px',
+                          marginBottom: '8px'
                         }}>
                           <img
-                            src={reply.user.avatar || '/api/placeholder/24/24'}
+                            src={reply.user.avatar || '/api/placeholder/32/32'}
                             alt={reply.user.name}
                             style={{
-                              width: '24px',
-                              height: '24px',
+                              width: '32px',
+                              height: '32px',
                               borderRadius: '50%',
                               objectFit: 'cover'
                             }}
                           />
-                          <span style={{
-                            fontWeight: 'bold',
-                            fontSize: '12px',
-                            color: '#333'
-                          }}>
-                            {reply.user.name}
-                          </span>
-                          <span style={{
-                            fontSize: '11px',
-                            color: '#666'
-                          }}>
-                            {formatShortDate(reply.createdAt)}
-                          </span>
+                          <div>
+                            <span style={{
+                              fontWeight: 'bold',
+                              fontSize: '13px',
+                              color: '#333'
+                            }}>
+                              {reply.user.name}
+                            </span>
+                            <span style={{
+                              fontSize: '11px',
+                              color: '#666',
+                              marginLeft: '8px'
+                            }}>
+                              {formatShortDate(reply.createdAt)}
+                            </span>
+                          </div>
                         </div>
                         <p style={{
                           margin: '0',
                           fontSize: '13px',
-                          color: '#333'
+                          color: '#333',
+                          lineHeight: '1.4'
                         }}>
                           {reply.content}
                         </p>
@@ -569,8 +826,8 @@ export default function EventDetailPage() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
