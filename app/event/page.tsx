@@ -77,12 +77,16 @@ const EventCard = ({ event, onJoin }: EventCardProps) => {
       </div>
 
       {/* Event Title */}
-      <h3 style={{
-        margin: '0 0 10px 0',
-        fontSize: '20px',
-        fontWeight: 'bold',
-        color: '#333'
-      }}>
+      <h3 
+        style={{
+          margin: '0 0 10px 0',
+          fontSize: '20px',
+          fontWeight: 'bold',
+          color: '#333',
+          cursor: 'pointer'
+        }}
+        onClick={() => window.location.href = `/event/${event.id}`}
+      >
         {event.title}
       </h3>
 
