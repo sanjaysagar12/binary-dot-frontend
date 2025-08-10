@@ -75,7 +75,7 @@ export default function HomePage() {
     if (isAuthenticated) {
       window.location.href = '/explore';
     } else {
-      window.location.href = '/auth/login';
+      window.location.href = '/login';
     }
   };
 
