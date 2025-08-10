@@ -208,7 +208,7 @@ export default function HomePage() {
                 <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative h-48">
                     <img 
-                      src={event.image || '/api/placeholder/400/250'} 
+                      src={event.image } 
                       alt={event.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {
