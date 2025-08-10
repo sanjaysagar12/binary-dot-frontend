@@ -113,6 +113,7 @@ export default function EventDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [commentVotes, setCommentVotes] = useState<{[key: string]: 'up' | 'down' | null}>({});
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     if (eventId) {
@@ -251,12 +252,16 @@ export default function EventDetailPage() {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
+    console.log('Starting image upload...', file.name);
+    
     // Upload to server and get URL back
     const formData = new FormData();
     formData.append('file', file);
     
     const token = localStorage.getItem('auth_token');
-    const response = await fetch('http://localhost:3000/api/upload/image', {
+    console.log('Uploading to API...');
+    
+    const response = await fetch('http://localhost:3000/api/image', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -264,13 +269,39 @@ export default function EventDetailPage() {
       body: formData
     });
     
+    console.log('Upload response status:', response.status);
+    
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Image upload failed');
+      const errorText = await response.text();
+      console.error('Upload failed:', errorText);
+      
+      let errorMessage;
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.message || error.error || 'Image upload failed';
+      } catch {
+        errorMessage = `Upload failed with status ${response.status}`;
+      }
+      
+      throw new Error(errorMessage);
     }
     
     const result = await response.json();
-    return result.data.imageUrl; // Return the URL from server response
+    console.log('Upload successful:', result);
+    
+    // Handle different possible response structures
+    if (result.data && result.data.imageUrl) {
+      return result.data.imageUrl;
+    } else if (result.data && result.data.url) {
+      return result.data.url;
+    } else if (result.imageUrl) {
+      return result.imageUrl;
+    } else if (result.url) {
+      return result.url;
+    } else {
+      console.error('Unexpected response structure:', result);
+      throw new Error('Invalid response format from upload service');
+    }
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -295,6 +326,52 @@ export default function EventDetailPage() {
       reader.onload = (e) => setImagePreview(e.target?.result as string);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleImageButtonClick = () => {
+    console.log('Image button clicked'); // Debug log
+    
+    // Create a file input element and trigger it
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none'; // Ensure it's hidden
+    
+    fileInput.onchange = (e) => {
+      console.log('File selected'); // Debug log
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        console.log('File details:', file.name, file.type, file.size); // Debug log
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+          alert('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
+          return;
+        }
+        
+        // Validate file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Image file size must be less than 5MB');
+          return;
+        }
+
+        setSelectedImage(file);
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          console.log('Image preview created'); // Debug log
+          setImagePreview(result);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    
+    // Append to body, click, then remove
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
   };
 
   const removeImage = () => {
@@ -589,6 +666,15 @@ export default function EventDetailPage() {
                       className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-black focus:border-black"
                     />
                     
+                    {/* Hidden file input */}
+                    <input
+                      type="file"
+                      id="image-upload"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                    
                     {/* Image Preview */}
                     {imagePreview && (
                       <div className="relative inline-block">
@@ -608,18 +694,23 @@ export default function EventDetailPage() {
                     
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-2">
-                        <label className="cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageSelect}
-                            className="hidden"
-                          />
-                          <Button variant="ghost" size="sm" className="space-x-2">
-                            <ImageIcon className="w-4 h-4" />
-                            <span>Add Image</span>
-                          </Button>
-                        </label>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="space-x-2"
+                          onClick={() => {
+                            const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+                            fileInput?.click();
+                          }}
+                          type="button"
+                          disabled={uploading}
+                        >
+                          <ImageIcon className="w-4 h-4" />
+                          <span>{uploading ? 'Uploading...' : 'Add Image'}</span>
+                        </Button>
+                        {uploading && (
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600"></div>
+                        )}
                       </div>
                       
                       <Button
