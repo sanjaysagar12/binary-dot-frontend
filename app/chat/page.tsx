@@ -231,18 +231,18 @@ export default function ChatPage() {
           event: {
             id: 'event1',
             title: 'Gaming Tournament Championship',
-            image: '/api/placeholder/400/200',
+            image: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg',
             creator: {
               id: 'host1',
               name: 'Event Host',
-              avatar: '/api/placeholder/40/40'
+              avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
             }
           },
           participants: [{
             user: {
               id: 'user1',
               name: 'John Doe',
-              avatar: '/api/placeholder/40/40'
+              avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
             }
           }],
           lastMessage: {
@@ -266,14 +266,14 @@ export default function ChatPage() {
             creator: {
               id: 'host2',
               name: 'Tech Leader',
-              avatar: '/api/placeholder/40/40'
+              avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
             }
           },
           participants: [{
             user: {
               id: 'user2',
               name: 'Jane Smith',
-              avatar: '/api/placeholder/40/40'
+              avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
             }
           }],
           lastMessage: {
@@ -327,12 +327,12 @@ export default function ChatPage() {
           sender: {
             id: 'user1',
             name: 'John Doe',
-            avatar: '/api/placeholder/40/40'
+            avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
           },
           receiver: {
             id: 'host1',
             name: 'Event Host',
-            avatar: '/api/placeholder/40/40'
+            avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
           }
         },
         {
@@ -343,12 +343,12 @@ export default function ChatPage() {
           sender: {
             id: 'host1',
             name: 'Event Host',
-            avatar: '/api/placeholder/40/40'
+            avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
           },
           receiver: {
             id: 'user1',
             name: 'John Doe',
-            avatar: '/api/placeholder/40/40'
+            avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
           }
         }
       ]);
@@ -420,7 +420,7 @@ export default function ChatPage() {
         sender: {
           id: currentUserId,
           name: 'You',
-          avatar: '/api/placeholder/40/40'
+          avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
         },
         receiver: otherParticipant.user
       };
@@ -600,11 +600,11 @@ export default function ChatPage() {
                     <div className="flex items-center space-x-3">
                       <div className="relative">
                         <img
-                          src={chat.participants[0]?.user.avatar || '/api/placeholder/40/40'}
+                          src={chat.participants[0]?.user.avatar || 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'}
                           alt="Avatar"
                           className="w-12 h-12 rounded-full object-cover"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/api/placeholder/40/40';
+                            (e.target as HTMLImageElement).src = 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg';
                           }}
                         />
                         {onlineUsers.has(chat.participants[0]?.user.id) && (
@@ -673,7 +673,7 @@ export default function ChatPage() {
                       )}
                       
                       <img
-                        src={selectedChat.participants[0]?.user.avatar || '/api/placeholder/40/40'}
+                        src={selectedChat.participants[0]?.user.avatar || 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'}
                         alt="Avatar"
                         className="w-10 h-10 rounded-full object-cover"
                       />

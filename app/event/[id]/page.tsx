@@ -467,11 +467,22 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="w-96 text-center">
+      <div className="min-h-screen bg-[#161616] flex items-center justify-center relative overflow-hidden">
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url('/Avalink.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        <div className="fixed inset-0 bg-black/60" />
+        
+        <Card className="w-96 text-center bg-white/5 backdrop-blur-md border border-white/20 shadow-xl relative z-10">
           <CardContent className="pt-6">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-black border-t-transparent mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading event...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#E94042] border-t-transparent mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading event...</p>
           </CardContent>
         </Card>
       </div>
@@ -480,15 +491,26 @@ export default function EventDetailPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="w-96 text-center">
+      <div className="min-h-screen bg-[#161616] flex items-center justify-center relative overflow-hidden">
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url('/Avalink.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        <div className="fixed inset-0 bg-black/60" />
+        
+        <Card className="w-96 text-center bg-white/5 backdrop-blur-md border border-white shadow-xl relative z-10">
           <CardContent className="pt-6">
-            <h1 className="text-2xl font-semibold mb-4 text-red-600">Error</h1>
-            <p className="text-muted-foreground mb-4">{error}</p>
+            <h1 className="text-2xl font-semibold mb-4 text-red-400">Error</h1>
+            <p className="text-gray-300 mb-4">{error}</p>
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/event'}
-              className="inline-flex items-center space-x-2"
+              className="inline-flex items-center space-x-2 border-gray-600 text-gray-300 "
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Events</span>
@@ -501,14 +523,25 @@ export default function EventDetailPage() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="w-96 text-center">
+      <div className="min-h-screen bg-[#161616] flex items-center justify-center relative overflow-hidden">
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url('/Avalink.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        <div className="fixed inset-0 bg-black/60" />
+        
+        <Card className="w-96 text-center bg-white/5 backdrop-blur-md border border-white/20 shadow-xl relative z-10">
           <CardContent className="pt-6">
-            <h1 className="text-2xl font-semibold mb-4">Event not found</h1>
+            <h1 className="text-2xl font-semibold mb-4 text-white">Event not found</h1>
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/event'}
-              className="inline-flex items-center space-x-2"
+              className="inline-flex items-center space-x-2 border-gray-600 text-gray-300 hover:bg-white/10"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Events</span>
@@ -523,15 +556,29 @@ export default function EventDetailPage() {
   const isEventFull = event?.maxParticipants ? participantCount >= event.maxParticipants : false;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#161616] relative overflow-hidden">
+      {/* Background Image */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        style={{
+          backgroundImage: `url('/Avalink.webp')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundAttachment: 'fixed'
+        }}
+      />
+      
+      {/* Dark overlay */}
+      <div className="fixed inset-0 bg-black/60" />
+
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-sm border-b border-gray-700">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex items-center justify-between h-16">
             <Button 
               variant="ghost" 
               onClick={() => window.location.href = '/event'}
-              className="inline-flex items-center space-x-2"
+              className="inline-flex items-center space-x-2 text-white hover:bg-white hover:text-black"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Events</span>
@@ -542,13 +589,14 @@ export default function EventDetailPage() {
                 variant={isBookmarked ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsBookmarked(!isBookmarked)}
+                className={isBookmarked ? "bg-[#E94042] hover:bg-[#E94042]/90" : "border-gray-600 text-gray-300 hover:bg-white/10"}
               >
                 <Bookmark className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-white/10">
                 <Share2 className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-white/10">
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </div>
@@ -556,16 +604,16 @@ export default function EventDetailPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Event Card */}
-            <Card>
+            <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300 overflow-hidden p-0">
               {/* Event Image */}
               {event.image && (
-                <div className="relative h-64 sm:h-80 rounded-t-lg overflow-hidden">
+                <div className="relative h-64 sm:h-80">
                   <img
                     src={event.image}
                     alt={event.title}
@@ -576,7 +624,7 @@ export default function EventDetailPage() {
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <Badge className="absolute top-4 right-4 bg-black text-white">
+                  <Badge className="absolute top-4 right-4 bg-[#E94042] text-white">
                     Event
                   </Badge>
                 </div>
@@ -586,14 +634,14 @@ export default function EventDetailPage() {
                 {/* Event Header */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-[#E94042] rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-bold">
                         {event.creator.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">r/Events</span>
+                      <div className="flex items-center space-x-2 text-sm text-gray-400">
+                        <span className="font-medium text-white">r/Events</span>
                         <span>•</span>
                         <span>Posted by u/{event.creator.name}</span>
                         <span>•</span>
@@ -602,43 +650,43 @@ export default function EventDetailPage() {
                     </div>
                   </div>
 
-                  <h1 className="text-3xl font-bold leading-tight">{event.title}</h1>
-                  <p className="text-muted-foreground leading-relaxed text-lg">{event.description}</p>
+                  <h1 className="text-3xl font-bold leading-tight text-white">{event.title}</h1>
+                  <p className="text-gray-300 leading-relaxed text-lg">{event.description}</p>
                 </div>
 
                 {/* Event Details Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <Card className="p-4">
-                    <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                  <Card className="p-4 bg-white/10 backdrop-blur-sm border border-white/20">
+                    <div className="flex items-center space-x-2 text-gray-400 mb-2">
                       <Calendar className="w-4 h-4" />
                       <span className="text-xs font-medium uppercase tracking-wide">Date</span>
                     </div>
-                    <div className="text-sm font-semibold">{formatDate(event.startDate)}</div>
+                    <div className="text-sm font-semibold text-white">{formatDate(event.startDate)}</div>
                   </Card>
 
                   {event.location && (
-                    <Card className="p-4">
-                      <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                    <Card className="p-4 bg-white/10 backdrop-blur-sm border border-white/20">
+                      <div className="flex items-center space-x-2 text-gray-400 mb-2">
                         <MapPin className="w-4 h-4" />
                         <span className="text-xs font-medium uppercase tracking-wide">Location</span>
                       </div>
-                      <div className="text-sm font-semibold">{event.location}</div>
+                      <div className="text-sm font-semibold text-white">{event.location}</div>
                     </Card>
                   )}
 
-                  <Card className="p-4">
-                    <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                  <Card className="p-4 bg-white/10 backdrop-blur-sm border border-white/20">
+                    <div className="flex items-center space-x-2 text-gray-400 mb-2">
                       <Users className="w-4 h-4" />
                       <span className="text-xs font-medium uppercase tracking-wide">Attendees</span>
                     </div>
-                    <div className="text-sm font-semibold">
+                    <div className="text-sm font-semibold text-white">
                       {participantCount}{event.maxParticipants ? `/${event.maxParticipants}` : ''}
                     </div>
                   </Card>
 
                   {event.prizePool && (
-                    <Card className="p-4 bg-black text-white">
-                      <div className="flex items-center space-x-2 text-gray-300 mb-2">
+                    <Card className="p-4 bg-[#E94042] text-white">
+                      <div className="flex items-center space-x-2 text-gray-200 mb-2">
                         <DollarSign className="w-4 h-4" />
                         <span className="text-xs font-medium uppercase tracking-wide">Prize Pool</span>
                       </div>
@@ -648,9 +696,9 @@ export default function EventDetailPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-between pt-4 border-t">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-600">
                   <div className="flex items-center space-x-4">
-                    <Button variant="ghost" size="sm" className="space-x-2">
+                    <Button variant="ghost" size="sm" className="space-x-2 text-gray-300 hover:bg-white/10">
                       <MessageCircle className="w-4 h-4" />
                       <span>{event.comments.length}</span>
                     </Button>
@@ -659,7 +707,7 @@ export default function EventDetailPage() {
                       variant={isLiked ? "default" : "ghost"} 
                       size="sm"
                       onClick={() => setIsLiked(!isLiked)}
-                      className="space-x-2"
+                      className={`space-x-2 ${isLiked ? 'bg-[#E94042] hover:bg-[#E94042]/90' : 'text-gray-300 hover:bg-white/10'}`}
                     >
                       <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
                       <span>Like</span>
@@ -670,14 +718,14 @@ export default function EventDetailPage() {
                     <Button 
                       variant="outline"
                       onClick={handleMessageHost}
-                      className="space-x-2"
+                      className="space-x-2 border-gray-600 text-gray-300 text-black"
                     >
                       <MessageCircle className="w-4 h-4" />
                       <span>Message Host</span>
                     </Button>
                     
                     {!isEventFull && (
-                      <Button onClick={handleJoinEvent} className="bg-black hover:bg-gray-800">
+                      <Button onClick={handleJoinEvent} className="bg-[#E94042] hover:bg-[#E94042]/90 text-white">
                         Join Event
                       </Button>
                     )}
@@ -687,10 +735,10 @@ export default function EventDetailPage() {
             </Card>
 
             {/* Comment Input */}
-            <Card>
+            <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
               <CardContent className="p-4">
                 <div className="flex space-x-3">
-                  <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-[#E94042] rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">U</span>
                   </div>
                   <div className="flex-1 space-y-3">
@@ -699,7 +747,7 @@ export default function EventDetailPage() {
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Share your thoughts about this event..."
                       rows={3}
-                      className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-black focus:border-black"
+                      className="w-full p-3 bg-gray-800/50 border border-gray-600 text-white placeholder:text-gray-400 rounded-lg resize-none focus:outline-none focus:ring-0 focus:border-gray-600"
                     />
                     
                     {/* Hidden file input */}
@@ -717,11 +765,11 @@ export default function EventDetailPage() {
                         <img 
                           src={imagePreview} 
                           alt="Preview" 
-                          className="h-32 w-32 object-cover rounded-lg border"
+                          className="h-32 w-32 object-cover rounded-lg border border-gray-600"
                         />
                         <button
                           onClick={removeImage}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -733,7 +781,7 @@ export default function EventDetailPage() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="space-x-2"
+                          className="space-x-2 text-gray-300 hover:text-black hover:bg-white"
                           onClick={() => {
                             const fileInput = document.getElementById('image-upload') as HTMLInputElement;
                             fileInput?.click();
@@ -752,7 +800,7 @@ export default function EventDetailPage() {
                       <Button
                         onClick={handleAddComment}
                         disabled={!newComment.trim() || uploading}
-                        className="space-x-2 bg-black hover:bg-gray-800"
+                        className="space-x-2 bg-[#E94042] hover:bg-[#E94042]/90 text-white"
                       >
                         <Send className="w-4 h-4" />
                         <span>{uploading ? 'Posting...' : 'Post Comment'}</span>
@@ -765,10 +813,10 @@ export default function EventDetailPage() {
 
             {/* Comments */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Comments ({event.comments.length})</h3>
+              <h3 className="text-lg font-semibold text-white">Comments ({event.comments.length})</h3>
               
               {event.comments.map((comment) => (
-                <Card key={comment.id}>
+                <Card key={comment.id} className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
                   <CardContent className="p-4">
                     <div className="flex space-x-3">
                       <div className="flex flex-col items-center space-y-1">
@@ -776,14 +824,16 @@ export default function EventDetailPage() {
                           variant={commentVotes[comment.id] === 'up' ? "default" : "ghost"}
                           size="sm"
                           onClick={() => handleVote(comment.id, 'up')}
+                          className={commentVotes[comment.id] === 'up' ? "bg-[#E94042] hover:bg-[#E94042]/90" : "text-gray-300 hover:bg-white/10"}
                         >
                           <ChevronUp className="w-4 h-4" />
                         </Button>
-                        <span className="text-xs font-medium">0</span>
+                        <span className="text-xs font-medium text-gray-300">0</span>
                         <Button
                           variant={commentVotes[comment.id] === 'down' ? "default" : "ghost"}
                           size="sm"
                           onClick={() => handleVote(comment.id, 'down')}
+                          className={commentVotes[comment.id] === 'down' ? "bg-[#E94042] hover:bg-[#E94042]/90" : "text-gray-300 hover:bg-white/10"}
                         >
                           <ChevronDown className="w-4 h-4" />
                         </Button>
@@ -791,11 +841,11 @@ export default function EventDetailPage() {
 
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center space-x-2">
-                          <span className="font-medium">u/{comment.user.name}</span>
-                          <span className="text-xs text-muted-foreground">{formatShortDate(comment.createdAt)}</span>
+                          <span className="font-medium text-white">u/{comment.user.name}</span>
+                          <span className="text-xs text-gray-400">{formatShortDate(comment.createdAt)}</span>
                         </div>
                         
-                        <p className="text-muted-foreground leading-relaxed">{comment.content}</p>
+                        <p className="text-gray-300 leading-relaxed">{comment.content}</p>
                         
                         {/* Comment Image */}
                         {comment.image && (
@@ -803,7 +853,7 @@ export default function EventDetailPage() {
                             <img 
                               src={comment.image} 
                               alt="Comment attachment" 
-                              className="max-w-md h-auto rounded-lg border"
+                              className="max-w-md h-auto rounded-lg border border-gray-600"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
                               }}
@@ -811,21 +861,23 @@ export default function EventDetailPage() {
                           </div>
                         )}
                         
-                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                        <div className="flex items-center space-x-4 text-xs text-gray-400">
                           <Button 
                             variant="ghost" 
                             size="sm"
                             onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                            className="text-gray-300 hover:bg-white/10"
                           >
                             Reply
                           </Button>
-                          <Button variant="ghost" size="sm">Share</Button>
-                          <Button variant="ghost" size="sm">Report</Button>
+                          <Button variant="ghost" size="sm" className="text-gray-300 hover:bg-white/10">Share</Button>
+                          <Button variant="ghost" size="sm" className="text-gray-300 hover:bg-white/10">Report</Button>
                           {comment.replies.length > 0 && (
                             <Button 
                               variant="ghost" 
                               size="sm"
                               onClick={() => toggleReplies(comment.id)}
+                              className="text-gray-300 hover:bg-white/10"
                             >
                               {showReplies[comment.id] ? 'Hide' : 'Show'} {comment.replies.length} replies
                             </Button>
@@ -834,21 +886,21 @@ export default function EventDetailPage() {
 
                         {/* Reply Input */}
                         {replyingTo === comment.id && (
-                          <div className="mt-4 ml-6 border-l-2 border-muted pl-4">
+                          <div className="mt-4 ml-6 border-l-2 border-gray-600 pl-4">
                             <div className="flex space-x-2">
                               <textarea
                                 value={replyContent}
                                 onChange={(e) => setReplyContent(e.target.value)}
                                 placeholder="Write a reply..."
                                 rows={2}
-                                className="flex-1 p-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-black focus:border-black"
+                                className="flex-1 p-2 bg-gray-800/50 border border-gray-600 text-white placeholder:text-gray-400 rounded-lg resize-none focus:outline-none focus:ring-0 focus:border-gray-600"
                               />
                               <div className="flex flex-col space-y-2">
                                 <Button
                                   onClick={() => handleAddReply(comment.id)}
                                   disabled={!replyContent.trim()}
                                   size="sm"
-                                  className="bg-black hover:bg-gray-800"
+                                  className="bg-[#E94042] hover:bg-[#E94042]/90"
                                 >
                                   Reply
                                 </Button>
@@ -859,6 +911,7 @@ export default function EventDetailPage() {
                                   }}
                                   variant="outline"
                                   size="sm"
+                                  className="border-gray-600 text-gray-300 hover:bg-white/10"
                                 >
                                   Cancel
                                 </Button>
@@ -869,24 +922,24 @@ export default function EventDetailPage() {
 
                         {/* Replies */}
                         {showReplies[comment.id] && comment.replies && comment.replies.length > 0 && (
-                          <div className="mt-4 ml-6 border-l-2 border-muted pl-4 space-y-4">
+                          <div className="mt-4 ml-6 border-l-2 border-gray-600 pl-4 space-y-4">
                             {comment.replies.map((reply) => (
                               <div key={reply.id} className="flex space-x-3">
                                 <div className="flex flex-col items-center space-y-1">
-                                  <Button variant="ghost" size="sm">
+                                  <Button variant="ghost" size="sm" className="text-gray-300 hover:bg-white/10">
                                     <ChevronUp className="w-3 h-3" />
                                   </Button>
-                                  <span className="text-xs font-medium">0</span>
-                                  <Button variant="ghost" size="sm">
+                                  <span className="text-xs font-medium text-gray-300">0</span>
+                                  <Button variant="ghost" size="sm" className="text-gray-300 hover:bg-white/10">
                                     <ChevronDown className="w-3 h-3" />
                                   </Button>
                                 </div>
                                 <div className="flex-1 space-y-2">
                                   <div className="flex items-center space-x-2">
-                                    <span className="font-medium text-sm">u/{reply.user.name}</span>
-                                    <span className="text-xs text-muted-foreground">{formatShortDate(reply.createdAt)}</span>
+                                    <span className="font-medium text-sm text-white">u/{reply.user.name}</span>
+                                    <span className="text-xs text-gray-400">{formatShortDate(reply.createdAt)}</span>
                                   </div>
-                                  <p className="text-muted-foreground text-sm leading-relaxed">{reply.content}</p>
+                                  <p className="text-gray-300 text-sm leading-relaxed">{reply.content}</p>
                                 </div>
                               </div>
                             ))}
@@ -903,14 +956,14 @@ export default function EventDetailPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <Card className="border-blue-200 bg-blue-50">
+            <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-blue-800">Quick Actions</CardTitle>
+                <CardTitle className="text-white">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button 
                   onClick={handleMessageHost}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full bg-[#E94042] hover:bg-[#E94042]/90 text-white"
                   size="lg"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
@@ -920,7 +973,7 @@ export default function EventDetailPage() {
                 {!isEventFull && (
                   <Button 
                     onClick={handleJoinEvent} 
-                    className="w-full bg-black hover:bg-gray-800"
+                    className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20"
                     size="lg"
                   >
                     <Users className="w-4 h-4 mr-2" />
@@ -928,36 +981,36 @@ export default function EventDetailPage() {
                   </Button>
                 )}
                 
-                <div className="text-xs text-blue-600 text-center">
+                <div className="text-xs text-gray-400 text-center">
                   Connect with the host for questions or event details
                 </div>
               </CardContent>
             </Card>
 
             {/* Event Information */}
-            <Card>
+            <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
               <CardHeader>
-                <CardTitle>Event Information</CardTitle>
+                <CardTitle className="text-white">Event Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Created</span>
-                  <span className="font-medium text-sm">{formatShortDate(event.createdAt)}</span>
+                  <span className="text-gray-400 text-sm">Created</span>
+                  <span className="font-medium text-sm text-white">{formatShortDate(event.createdAt)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Participants</span>
-                  <span className="font-medium text-sm">{participantCount}</span>
+                  <span className="text-gray-400 text-sm">Participants</span>
+                  <span className="font-medium text-sm text-white">{participantCount}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Comments</span>
-                  <span className="font-medium text-sm">{event.comments.length}</span>
+                  <span className="text-gray-400 text-sm">Comments</span>
+                  <span className="font-medium text-sm text-white">{event.comments.length}</span>
                 </div>
                 {event.prizePool && (
                   <>
-                    <div className="border-t pt-4 mt-4">
+                    <div className="border-t border-gray-600 pt-4 mt-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground text-sm">Prize Pool</span>
-                        <span className="font-semibold">${event.prizePool.toLocaleString()}</span>
+                        <span className="text-gray-400 text-sm">Prize Pool</span>
+                        <span className="font-semibold text-white">${event.prizePool.toLocaleString()}</span>
                       </div>
                     </div>
                   </>
@@ -967,9 +1020,9 @@ export default function EventDetailPage() {
 
             {/* Prizes */}
             {event.prizes && event.prizes.length > 0 && (
-              <Card>
+              <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="flex items-center space-x-2 text-white">
                     <Trophy className="w-5 h-5" />
                     <span>Prizes</span>
                   </CardTitle>
@@ -977,8 +1030,8 @@ export default function EventDetailPage() {
                 <CardContent className="space-y-3">
                   {event.prizes.sort((a, b) => a.position - b.position).map((prize) => (
                     <div key={prize.id} className="flex justify-between items-center">
-                      <span className="text-sm font-medium">{prize.title}</span>
-                      <Badge variant="outline">${prize.amount.toLocaleString()}</Badge>
+                      <span className="text-sm font-medium text-gray-300">{prize.title}</span>
+                      <Badge variant="outline" className="border-gray-600 text-gray-300">${prize.amount.toLocaleString()}</Badge>
                     </div>
                   ))}
                 </CardContent>
@@ -987,28 +1040,28 @@ export default function EventDetailPage() {
 
             {/* Recent Participants */}
             {event.participants.length > 0 && (
-              <Card>
+              <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
                 <CardHeader>
-                  <CardTitle>Recent Participants</CardTitle>
+                  <CardTitle className="text-white">Recent Participants</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {event.participants.slice(0, 5).map((participant) => (
                     <div key={participant.id} className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span className="text-gray-600 text-xs font-medium">
+                      <div className="w-8 h-8 bg-[#E94042] rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">
                           {participant.user.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="flex-1">
-                        <span className="text-sm font-medium">u/{participant.user.name}</span>
-                        <div className="text-xs text-muted-foreground">
+                        <span className="text-sm font-medium text-white">u/{participant.user.name}</span>
+                        <div className="text-xs text-gray-400">
                           Joined {formatShortDate(participant.joinedAt)}
                         </div>
                       </div>
                     </div>
                   ))}
                   {event.participants.length > 5 && (
-                    <div className="text-xs text-muted-foreground pt-2 border-t">
+                    <div className="text-xs text-gray-400 pt-2 border-t border-gray-600">
                       +{event.participants.length - 5} more participants
                     </div>
                   )}
@@ -1023,7 +1076,7 @@ export default function EventDetailPage() {
       <div className="fixed bottom-6 right-6 lg:hidden">
         <Button
           onClick={handleMessageHost}
-          className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg"
+          className="h-14 w-14 rounded-full bg-[#E94042] hover:bg-[#E94042]/90 shadow-lg"
           size="lg"
         >
           <MessageCircle className="w-6 h-6" />

@@ -7,18 +7,18 @@ const mockChats = [
     event: {
       id: 'event1',
       title: 'Gaming Tournament Championship',
-      image: '/api/placeholder/400/200',
+      image: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg',
       creator: {
         id: 'host1',
         name: 'Event Host',
-        avatar: '/api/placeholder/40/40'
+        avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
       }
     },
     participants: [{
       user: {
         id: 'user1',
         name: 'John Doe',
-        avatar: '/api/placeholder/40/40'
+        avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
       }
     }],
     lastMessage: {
@@ -42,14 +42,14 @@ const mockChats = [
       creator: {
         id: 'host2',
         name: 'Tech Leader',
-        avatar: '/api/placeholder/40/40'
+        avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
       }
     },
     participants: [{
       user: {
         id: 'user2',
         name: 'Jane Smith',
-        avatar: '/api/placeholder/40/40'
+        avatar: 'https://as2.ftcdn.net/v2/jpg/05/89/93/27/1000_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg'
       }
     }],
     lastMessage: {
