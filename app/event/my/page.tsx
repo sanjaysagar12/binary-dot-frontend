@@ -1,6 +1,144 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+
+// Contract ABI and address
+const CONTRACT_ABI = [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "FundsDistributed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "FundsLocked",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "recipients",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "distributeFunds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getBalance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "host",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lockFunds",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  }
+];
+
+const CONTRACT_ADDRESS = "0xA3C96Ba32732199E1C8B9501A95D75Fc97E94405";
+
+// Get contract instance
+const getEthereumContract = (): ethers.Contract | null => {
+  try {
+    if (!window.ethereum) return null;
+    
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    
+    return contract;
+  } catch (error) {
+    console.error('Error getting contract:', error);
+    return null;
+  }
+};
+
+// Switch to Fuji network
+const switchToFujiNetwork = async () => {
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: '0xA869' }], // 43113 in hex
+    });
+  } catch (switchError: any) {
+    if (switchError.code === 4902) {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [
+          {
+            chainId: '0xA869',
+            chainName: 'Avalanche Fuji Testnet',
+            nativeCurrency: {
+              name: 'AVAX',
+              symbol: 'AVAX',
+              decimals: 18,
+            },
+            rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
+            blockExplorerUrls: ['https://testnet.snowtrace.io/'],
+          },
+        ],
+      });
+    }
+  }
+};
 
 // Type definitions
 interface Event {
@@ -15,6 +153,8 @@ interface Event {
   endDate: string;
   isCompleted: boolean;
   isActive: boolean;
+  contractAddress?: string;
+  blockchainTxHash?: string;
   _count?: {
     participants: number;
     comments: number;
@@ -158,6 +298,172 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
   const [selectedWinners, setSelectedWinners] = useState<Winner[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
+  const [contractBalance, setContractBalance] = useState('0');
+  const [distributingPrizes, setDistributingPrizes] = useState(false);
+
+  // Connect wallet function
+  const connectWallet = async () => {
+    try {
+      if (!window.ethereum) {
+        alert('Please install MetaMask!');
+        return;
+      }
+
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+
+      // Switch to Avalanche Fuji network
+      await switchToFujiNetwork();
+
+      setWalletAddress(accounts[0]);
+      setWalletConnected(true);
+
+      // Get contract balance
+      await updateContractBalance();
+    } catch (error: any) {
+      console.error('Error connecting wallet:', error);
+      alert('Error connecting wallet: ' + (error?.message || 'Unknown error'));
+    }
+  };
+
+  // Update contract balance
+  const updateContractBalance = async () => {
+    try {
+      const contract = getEthereumContract();
+      if (!contract) return;
+
+      const balance = await contract.getBalance();
+      const balanceInEther = ethers.utils.formatEther(balance);
+      setContractBalance(parseFloat(balanceInEther).toFixed(6));
+    } catch (error) {
+      console.error('Error getting contract balance:', error);
+      setContractBalance('0');
+    }
+  };
+
+  // Distribute prizes via smart contract
+  const distributePrizesToWinners = async (winners: Winner[]) => {
+    if (!walletConnected) {
+      alert('Please connect your wallet to distribute prizes');
+      return false;
+    }
+
+    // Filter winners that have wallet addresses
+    const winnersWithWallets = winners.filter(winner => {
+      const participant = participants.find(p => p.user?.id === winner.userId);
+      return participant?.user?.walletAddress;
+    });
+
+    if (winnersWithWallets.length === 0) {
+      alert('None of the selected winners have wallet addresses connected');
+      return false;
+    }
+
+    const winnersWithoutWallets = winners.filter(winner => {
+      const participant = participants.find(p => p.user?.id === winner.userId);
+      return !participant?.user?.walletAddress;
+    });
+
+    if (winnersWithoutWallets.length > 0) {
+      const names = winnersWithoutWallets.map(winner => {
+        const participant = participants.find(p => p.user?.id === winner.userId);
+        return participant?.user?.name || 'Unknown';
+      }).join(', ');
+      
+      if (!confirm(`Warning: ${names} don't have wallet addresses and won't receive prizes via smart contract. Continue anyway?`)) {
+        return false;
+      }
+    }
+
+    // Prepare recipients and amounts
+    const recipients = winnersWithWallets.map(winner => {
+      const participant = participants.find(p => p.user?.id === winner.userId);
+      return participant?.user?.walletAddress!;
+    });
+
+    const amounts = winnersWithWallets.map(winner => winner.prizeAmount);
+    
+    // Check if total amount exceeds contract balance
+    const totalAmount = amounts.reduce((sum, amt) => sum + amt, 0);
+    const currentBalance = parseFloat(contractBalance);
+
+    if (totalAmount > currentBalance) {
+      alert(`Total prize amount (${totalAmount} AVAX) exceeds contract balance (${currentBalance} AVAX)`);
+      return false;
+    }
+
+    setDistributingPrizes(true);
+    try {
+      console.log('=== DEBUG: Starting smart contract distribution ===');
+      console.log('window.ethereum exists:', !!window.ethereum);
+      console.log('walletConnected:', walletConnected);
+      console.log('walletAddress:', walletAddress);
+      
+      const contract = getEthereumContract();
+      console.log('Contract instance created:', !!contract);
+      
+      if (!contract) {
+        throw new Error('Contract not available');
+      }
+
+      const amountsInWei = amounts.map(amount => ethers.utils.parseEther(amount.toString()));
+
+      console.log('Distributing prizes via smart contract:', {
+        recipients,
+        amounts,
+        amountsInWei: amountsInWei.map(amt => amt.toString()),
+        totalAmount,
+        contractBalance: currentBalance
+      });
+
+      // Estimate gas first
+      try {
+        console.log('Estimating gas...');
+        const gasEstimate = await contract.estimateGas.distributeFunds(recipients, amountsInWei);
+        console.log('Gas estimate successful:', gasEstimate.toString());
+      } catch (gasError) {
+        console.error('Gas estimation failed:', gasError);
+        throw new Error('Transaction would fail. Please check recipient addresses and amounts.');
+      }
+
+      console.log('Sending transaction - MetaMask should pop up now...');
+      const transaction = await contract.distributeFunds(recipients, amountsInWei, {
+        gasLimit: 500000
+      });
+
+      console.log('Prize distribution transaction sent:', transaction.hash);
+      alert(`Prize distribution transaction sent! Hash: ${transaction.hash}`);
+
+      const receipt = await transaction.wait();
+      console.log('Prize distribution confirmed:', receipt);
+      alert('Prizes distributed successfully!');
+      
+      // Update contract balance
+      await updateContractBalance();
+      
+      return true;
+    } catch (error: any) {
+      console.error('Error distributing prizes:', error);
+
+      if (error.code === 'INSUFFICIENT_FUNDS') {
+        alert('Insufficient AVAX for prize distribution and gas fees');
+      } else if (error.code === 'USER_REJECTED') {
+        alert('Transaction rejected by user');
+      } else if (error.message?.includes('execution reverted')) {
+        alert('Distribution failed: ' + (error.reason || 'Check contract balance and recipient addresses'));
+      } else if (error.message?.includes('Transaction would fail')) {
+        alert(error.message);
+      } else {
+        alert('Error distributing prizes: ' + (error?.message || 'Unknown error'));
+      }
+      return false;
+    } finally {
+      setDistributingPrizes(false);
+    }
+  };
 
   // Fetch participants
   const fetchParticipants = async () => {
@@ -198,7 +504,46 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
       })));
     }
     fetchParticipants();
-  }, [event]);
+
+    // Check if wallet is already connected
+    if (window.ethereum && window.ethereum.selectedAddress) {
+      setWalletAddress(window.ethereum.selectedAddress);
+      setWalletConnected(true);
+      updateContractBalance();
+    }
+
+    // Listen for account changes
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+          setWalletConnected(true);
+          updateContractBalance();
+        } else {
+          setWalletAddress('');
+          setWalletConnected(false);
+          setContractBalance('0');
+        }
+      };
+
+      const handleChainChanged = () => {
+        // Refresh contract balance when chain changes
+        if (walletConnected) {
+          updateContractBalance();
+        }
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+
+      return () => {
+        if (window.ethereum) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+          window.ethereum.removeListener('chainChanged', handleChainChanged);
+        }
+      };
+    }
+  }, [event, walletConnected]);
 
   // Handle winner selection
   const handleWinnerSelect = (position: number, userId: string) => {
@@ -224,39 +569,106 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
 
   // Submit winners
   const handleSubmitWinners = async () => {
-    const validWinners = selectedWinners.filter(w => w.userId);
+    // Validate that at least one winner is selected
+    const validWinners = selectedWinners.filter(w => w.userId && w.prizeAmount > 0);
     
     if (validWinners.length === 0) {
-      alert('Please select at least one winner');
+      alert('Please select at least one winner with a prize amount');
       return;
     }
 
-    if (!confirm(`Are you sure you want to select ${validWinners.length} winners and complete this event?`)) {
+    // Check if all selected winners have valid user data
+    const winnersWithParticipantData = validWinners.map(winner => {
+      const participant = participants.find(p => p.user?.id === winner.userId);
+      if (!participant) {
+        throw new Error(`Participant not found for winner ${winner.position}`);
+      }
+      return { ...winner, participant };
+    });
+
+    // Confirm the selection
+    const winnerNames = winnersWithParticipantData.map(w => 
+      `${w.position}${w.position === 1 ? 'st' : w.position === 2 ? 'nd' : w.position === 3 ? 'rd' : 'th'}: ${w.participant.user?.name} (${w.prizeAmount} AVAX)`
+    ).join('\n');
+    
+    if (!confirm(`Confirm winners selection?\n\n${winnerNames}\n\nThis will complete the event and distribute prizes via smart contract.`)) {
       return;
     }
 
     setSubmitting(true);
+    
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`http://localhost:3000/api/event/${event.id}/select-winners`, {
-        method: 'POST',
+      
+      // Step 1: Submit winners to backend (using existing winners endpoint if available)
+      try {
+        const winnersData = validWinners.map(winner => ({
+          userId: winner.userId,
+          position: winner.position,
+          prizeAmount: winner.prizeAmount
+        }));
+
+        const winnersResponse = await fetch(`http://localhost:3000/api/event/${event.id}/winners`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ winners: winnersData })
+        });
+
+        if (winnersResponse.ok) {
+          console.log('Winners saved successfully');
+        } else {
+          console.log('Winners endpoint not available, continuing with completion...');
+        }
+      } catch (winnersError) {
+        console.log('Winners endpoint not available, continuing with completion...');
+      }
+
+      // Step 2: Mark event as completed (using existing status endpoint)
+      const statusResponse = await fetch(`http://localhost:3000/api/event/${event.id}/status`, {
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ winners: validWinners })
+        body: JSON.stringify({ isCompleted: true })
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!statusResponse.ok) {
+        const errorData = await statusResponse.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Failed to complete event! status: ${statusResponse.status}`);
       }
 
-      alert('Winners selected successfully! Event has been completed.');
+      console.log('Event marked as completed successfully');
+
+      // Step 3: Distribute prizes via smart contract (if wallet connected)
+      if (walletConnected) {
+        console.log('Wallet connected, attempting to distribute prizes via smart contract...');
+        console.log('Event contract details:', {
+          contractAddress: event.contractAddress,
+          blockchainTxHash: event.blockchainTxHash
+        });
+        
+        const distributionSuccess = await distributePrizesToWinners(validWinners);
+        
+        if (distributionSuccess) {
+          alert('Event completed and prizes distributed successfully via smart contract!');
+        } else {
+          alert('Event completed successfully! However, prize distribution via smart contract failed. Please distribute manually or retry.');
+        }
+      } else {
+        alert('Event completed successfully! Connect your wallet to distribute prizes via smart contract.');
+      }
+
+      // Step 4: Refresh data and close modal
       onEventUpdated();
       onClose();
-    } catch (error) {
-      console.error('Failed to select winners:', error);
-      alert('Failed to select winners');
+      
+    } catch (error: any) {
+      console.error('Error submitting winners:', error);
+      alert('Error completing event: ' + (error?.message || 'Unknown error'));
     } finally {
       setSubmitting(false);
     }
@@ -299,7 +711,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-4">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                 event.isCompleted 
                   ? 'bg-green-100 text-green-800' 
@@ -312,7 +724,86 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
                   #{event.tag}
                 </span>
               )}
+              {event.contractAddress && event.blockchainTxHash && (
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                  🔗 Smart Contract
+                </span>
+              )}
             </div>
+
+            {/* Contract Information */}
+            {event.contractAddress && event.blockchainTxHash && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-blue-900 mb-2">🔗 Blockchain Integration</h4>
+                <div className="text-sm text-blue-800 space-y-1">
+                  <p><span className="font-medium">Contract:</span> {event.contractAddress}</p>
+                  <p><span className="font-medium">Transaction:</span> {event.blockchainTxHash}</p>
+                  {walletConnected && (
+                    <p><span className="font-medium">Contract Balance:</span> {contractBalance} AVAX</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Wallet Connection for Prize Distribution */}
+            {!event.isCompleted && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <h4 className="font-semibold text-yellow-900 mb-2">💰 Prize Distribution Setup</h4>
+                <div className="space-y-3">
+                  <p className="text-sm text-yellow-800">
+                    Connect your wallet to distribute prizes automatically via smart contract when selecting winners.
+                  </p>
+                  
+                  {/* Always show wallet status and connect button */}
+                  {walletConnected ? (
+                    <div className="space-y-3">
+                      <div className="bg-green-100 border border-green-200 rounded-lg p-3">
+                        <p className="text-sm text-green-800 font-medium">✅ Wallet Connected</p>
+                        <div className="text-xs text-green-700 mt-1">
+                          <p>Address: {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}</p>
+                          <p>Contract Balance: {contractBalance} AVAX</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          onClick={connectWallet}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                        >
+                          🦊 Reconnect MetaMask
+                        </button>
+                        <button
+                          onClick={() => {
+                            setWalletConnected(false);
+                            setWalletAddress('');
+                            setContractBalance('0');
+                          }}
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+                        >
+                          🔌 Disconnect
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={connectWallet}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                    >
+                      🦊 Connect MetaMask
+                    </button>
+                  )}
+                </div>
+                
+                {distributingPrizes && (
+                  <div className="mt-3 text-sm text-blue-800">
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span>Distributing prizes via smart contract...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Winner Selection */}
@@ -355,7 +846,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
                       
                       <div className="w-32">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Prize Amount
+                          Prize Amount (AVAX)
                         </label>
                         <input
                           type="number"
@@ -367,6 +858,26 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
                         />
                       </div>
                     </div>
+                    
+                    {/* Show selected participant's wallet status */}
+                    {winner.userId && (
+                      <div className="mt-2 text-sm">
+                        {(() => {
+                          const selectedParticipant = participants.find(p => p.user?.id === winner.userId);
+                          return selectedParticipant?.user?.walletAddress ? (
+                            <div className="text-green-600 flex items-center space-x-1">
+                              <span>✅</span>
+                              <span>Wallet: {selectedParticipant.user.walletAddress.slice(0, 10)}...{selectedParticipant.user.walletAddress.slice(-6)}</span>
+                            </div>
+                          ) : (
+                            <div className="text-red-600 flex items-center space-x-1">
+                              <span>⚠️</span>
+                              <span>No wallet address - cannot receive smart contract prize</span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -518,6 +1029,31 @@ const EventManagementPage = () => {
       alert('Failed to complete event');
     }
   };
+
+  // Add wallet event listeners like in contract page
+  useEffect(() => {
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        console.log('Accounts changed:', accounts);
+        // This will be handled in the modal component
+      };
+
+      const handleChainChanged = () => {
+        console.log('Chain changed');
+        window.location.reload();
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+
+      return () => {
+        if (window.ethereum) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+          window.ethereum.removeListener('chainChanged', handleChainChanged);
+        }
+      };
+    }
+  }, []);
 
   useEffect(() => {
     fetchMyEvents();
