@@ -21,7 +21,7 @@ declare global {
   }
 }
 
-export default function AuthCallbackPage() {
+export default function CallbackPage() {
   const [authStatus, setAuthStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [walletStatus, setWalletStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [message, setMessage] = useState('Processing authentication...');
