@@ -209,7 +209,7 @@ export default function ChatPage() {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch('http://localhost:3000/api/chat/list', {
+      const response = await fetch('https://api-avalink.portos.cloud/api/chat/list', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -302,7 +302,7 @@ export default function ChatPage() {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`http://localhost:3000/api/chat/${chatId}/messages?page=1&limit=50`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/chat/${chatId}/messages?page=1&limit=50`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -395,7 +395,7 @@ export default function ChatPage() {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`http://localhost:3000/api/chat/${selectedChat.chatId}/send`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/chat/${selectedChat.chatId}/send`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -57,8 +57,8 @@ const detectEventQuery = (prompt: string): string | null => {
 const fetchEvents = async (tag: string) => {
     try {
         const url = tag === 'all' 
-            ? 'http://localhost:3000/api/event/all'
-            : `http://localhost:3000/api/event/tag/${encodeURIComponent(tag)}`;
+            ? 'https://api-avalink.portos.cloud/api/event/all'
+            : `https://api-avalink.portos.cloud/api/event/tag/${encodeURIComponent(tag)}`;
             
         const response = await fetch(url);
         if (!response.ok) {

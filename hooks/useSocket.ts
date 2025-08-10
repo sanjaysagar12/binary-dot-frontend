@@ -28,7 +28,7 @@ export const useSocket = ({ userId, token }: UseSocketProps) => {
     if (!userId || !token) return;
 
     // Initialize socket connection
-    const newSocket = io('http://localhost:3000/chat', {
+    const newSocket = io('https://api-avalink.portos.cloud/chat', {
       auth: {
         token,
         userId

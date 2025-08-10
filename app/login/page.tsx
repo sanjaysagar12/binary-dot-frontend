@@ -55,7 +55,7 @@ export default function LoginPage() {
             </div>
             
             <a
-              href="http://localhost:3000/api/auth/google/signin"
+              href="https://api-avalink.portos.cloud/api/auth/google/signin"
               className="flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg border border-white/20 transition-all duration-300 hover:shadow-lg group"
             >
               <GoogleIcon />

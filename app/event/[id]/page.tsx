@@ -205,7 +205,7 @@ export default function EventDetailPage() {
       }
 
       // First, try to create or get existing chat with the host
-      const response = await fetch(`http://localhost:3000/api/chat/create/${eventId}`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/chat/create/${eventId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
