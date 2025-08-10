@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  DollarSign, 
-  ArrowRight, 
+import {
+  Calendar,
+  MapPin,
+  Users,
+  DollarSign,
+  ArrowRight,
   Sparkles,
   TrendingUp,
   Target
@@ -92,97 +92,137 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#161616]">
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-8">
-            <div className="space-y-4">
-              <Badge className="inline-flex items-center space-x-2 bg-black text-white px-4 py-2">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-100"
+          style={{
+            backgroundImage: `url('/Avalink.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+
+        {/* Responsive overlay for better readability */}
+        <div className="absolute inset-0 bg-black/20" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          <div className="text-center space-y-6 sm:space-y-8">
+            <div className="space-y-4 sm:space-y-6">
+              <Badge className="inline-flex items-center space-x-2 bg-black/80 backdrop-blur-sm text-white px-4 py-2 text-sm sm:text-base">
                 <Sparkles className="w-4 h-4" />
                 <span>The Future of Events</span>
               </Badge>
-              
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
+
+              <h1 className="text-5xl text-white sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-tight">
                 Discover Amazing
                 <span className="block">Events & Experiences</span>
               </h1>
-              
-              <p className="max-w-3xl mx-auto text-xl text-muted-foreground leading-relaxed">
-                Join a community of innovators, creators, and dreamers. Participate in exclusive events, 
+
+              <p className="max-w-2xl sm:max-w-3xl mx-auto text-xl sm:text-2xl text-gray-200 leading-relaxed px-4 sm:px-0">
+                Join a community of innovators, creators, and dreamers. Participate in exclusive events,
                 win prizes, and connect with like-minded individuals from around the world.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0  ">
+                <Button
                 onClick={handleGetStarted}
                 size="lg"
-                className="bg-black hover:bg-gray-800 px-8 py-4 text-lg"
-              >
+                className="bg-black/80 hover:bg-black/90 backdrop-blur-sm px-10 sm:px-14 py-5 sm:py-6 text-lg sm:text-2xl shadow-xl border border-white/10"
+                >
                 {isAuthenticated ? 'Explore Events' : 'Get Started'}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              
-              <Button 
+                </Button>
+
+                <Button
                 onClick={handleCreateEvent}
-                variant="outline" 
+                variant="outline"
                 size="lg"
-                className="px-8 py-4 text-lg"
-              >
+                className="px-10 sm:px-14 py-5 sm:py-6 text-lg sm:text-2xl bg-[#E94042]/90 hover:bg-[#E94042] backdrop-blur-sm border-[#E94042] text-white shadow-xl"
+                >
                 Create Event
-              </Button>
+                </Button>
             </div>
           </div>
         </div>
+
+        {/* Mobile-specific background adjustments */}
+        <style jsx>{`
+          @media (max-width: 768px) {
+            section {
+              background-attachment: scroll;
+            }
+          }
+        `}</style>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold">Why Choose Our Platform?</h2>
-            <p className="max-w-2xl mx-auto text-xl text-muted-foreground">
-              Experience the next generation of event discovery and participation
-            </p>
-          </div>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35"
+          style={{
+            backgroundImage: `url('/Avalink.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        
+        {/* Dark overlay for better readability */}
+        <div className="absolute inset-0 bg-black/40" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          <div className="text-center space-y-12 sm:space-y-16">
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight">
+                Why Choose Our Platform?
+              </h2>
+              <p className="max-w-3xl mx-auto text-xl sm:text-2xl text-gray-200 leading-relaxed">
+                Experience the next generation of event discovery and participation
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center p-8">
-              <CardContent className="space-y-4">
-                <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto">
-                  <TrendingUp className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold">Trending Events</h3>
-                <p className="text-muted-foreground">
-                  Discover the hottest events and trending topics in your industry
-                </p>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+              <Card className="text-center p-6 sm:p-8 bg-[#1D1D1D]/90 backdrop-blur-sm border border-white/10 hover:bg-[#1D1D1D]/95 transition-all duration-300">
+                <CardContent className="space-y-4 sm:space-y-6">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#E94042] rounded-full flex items-center justify-center mx-auto">
+                    <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl text-white font-semibold">Trending Events</h3>
+                  <p className="text-gray-200 text-base sm:text-lg leading-relaxed">
+                    Discover the hottest events and trending topics in your industry
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card className="text-center p-8">
-              <CardContent className="space-y-4">
-                <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto">
-                  <Target className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold">Win Prizes</h3>
-                <p className="text-muted-foreground">
-                  Participate in competitions and win amazing prizes worth thousands
-                </p>
-              </CardContent>
-            </Card>
+              <Card className="text-center p-6 sm:p-8 bg-[#1D1D1D]/90 backdrop-blur-sm border border-white/10 hover:bg-[#1D1D1D]/95 transition-all duration-300">
+                <CardContent className="space-y-4 sm:space-y-6">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20  bg-[#E94042] rounded-full flex items-center justify-center mx-auto">
+                    <Target className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl text-white font-semibold">Win Prizes</h3>
+                  <p className="text-gray-200 text-base sm:text-lg leading-relaxed">
+                    Participate in competitions and win amazing prizes worth thousands
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card className="text-center p-8">
-              <CardContent className="space-y-4">
-                <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold">Global Community</h3>
-                <p className="text-muted-foreground">
-                  Connect with thousands of passionate individuals worldwide
-                </p>
-              </CardContent>
-            </Card>
+              <Card className="text-center p-6 sm:p-8 bg-[#1D1D1D]/90 backdrop-blur-sm border border-white/10 hover:bg-[#1D1D1D]/95 transition-all duration-300">
+                <CardContent className="space-y-4 sm:space-y-6">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20  bg-[#E94042] rounded-full flex items-center justify-center mx-auto">
+                    <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl text-white font-semibold">Global Community</h3>
+                  <p className="text-gray-200 text-base sm:text-lg leading-relaxed">
+                    Connect with thousands of passionate individuals worldwide
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
@@ -207,8 +247,8 @@ export default function HomePage() {
               {featuredEvents.map((event) => (
                 <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative h-48">
-                    <img 
-                      src={event.image } 
+                    <img
+                      src={event.image}
                       alt={event.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -220,17 +260,17 @@ export default function HomePage() {
                       Featured
                     </Badge>
                   </div>
-                  
+
                   <CardContent className="p-6 space-y-4">
                     <h3 className="text-xl font-semibold">{event.title}</h3>
                     <p className="text-muted-foreground line-clamp-2">{event.description}</p>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center space-x-1 text-muted-foreground">
                         <Users className="w-4 h-4" />
                         <span>{event._count.participants} participants</span>
                       </div>
-                      
+
                       {event.prizePool && (
                         <div className="flex items-center space-x-1 font-semibold text-green-600">
                           <DollarSign className="w-4 h-4" />
@@ -238,8 +278,8 @@ export default function HomePage() {
                         </div>
                       )}
                     </div>
-                    
-                    <Button 
+
+                    <Button
                       onClick={() => window.location.href = `/event/${event.id}`}
                       className="w-full bg-black hover:bg-gray-800"
                     >
@@ -259,7 +299,7 @@ export default function HomePage() {
                 <p className="text-gray-500 text-lg mb-6">
                   Be the first to create an exciting event for the community!
                 </p>
-                <Button 
+                <Button
                   onClick={handleCreateEvent}
                   className="bg-black hover:bg-gray-800"
                 >
@@ -272,9 +312,9 @@ export default function HomePage() {
 
           {featuredEvents.length > 0 && (
             <div className="text-center mt-12">
-              <Button 
+              <Button
                 onClick={handleExploreEvents}
-                variant="outline" 
+                variant="outline"
                 size="lg"
                 className="px-8"
               >
@@ -292,14 +332,14 @@ export default function HomePage() {
           <h2 className="text-3xl sm:text-4xl font-bold">
             Ready to Start Your Journey?
           </h2>
-          
+
           <p className="text-xl text-gray-300 leading-relaxed">
-            Join thousands of participants who are already discovering amazing events, 
+            Join thousands of participants who are already discovering amazing events,
             winning prizes, and building meaningful connections.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
+            <Button
               onClick={handleGetStarted}
               size="lg"
               variant="secondary"
@@ -308,10 +348,10 @@ export default function HomePage() {
               {isAuthenticated ? 'Explore Events' : 'Sign Up Now'}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={handleExploreEvents}
-              variant="outline" 
+              variant="outline"
               size="lg"
               className="px-8 py-4 text-lg border-white text-white hover:bg-white hover:text-black"
             >
