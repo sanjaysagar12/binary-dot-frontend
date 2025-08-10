@@ -196,6 +196,41 @@ export default function EventDetailPage() {
     }
   };
 
+  const handleMessageHost = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Please login to message the host');
+        return;
+      }
+
+      // First, try to create or get existing chat with the host
+      const response = await fetch(`http://localhost:3000/api/chat/create/${eventId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          participantId: event?.creator.id
+        }),
+      });
+
+      if (response.ok) {
+        const chatData = await response.json();
+        // Navigate to chat page with the specific chat selected
+        window.location.href = `/chat?chatId=${chatData.data.chatId}`;
+      } else {
+        // If API fails, navigate to chat page and let user find the conversation
+        window.location.href = '/chat';
+      }
+    } catch (error) {
+      console.error('Error creating/finding chat:', error);
+      // Fallback to general chat page
+      window.location.href = '/chat';
+    }
+  };
+
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     
@@ -615,16 +650,6 @@ export default function EventDetailPage() {
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex items-center space-x-4">
-                    {/* <div className="flex items-center bg-muted rounded-full">
-                      <Button variant="ghost" size="sm" className="rounded-l-full px-3">
-                        <ChevronUp className="w-4 h-4" />
-                      </Button>
-                      <span className="px-3 py-2 text-sm font-medium">128</span>
-                      <Button variant="ghost" size="sm" className="rounded-r-full px-3">
-                        <ChevronDown className="w-4 h-4" />
-                      </Button>
-                    </div> */}
-
                     <Button variant="ghost" size="sm" className="space-x-2">
                       <MessageCircle className="w-4 h-4" />
                       <span>{event.comments.length}</span>
@@ -641,11 +666,22 @@ export default function EventDetailPage() {
                     </Button>
                   </div>
 
-                  {!isEventFull && (
-                    <Button onClick={handleJoinEvent} className="bg-black hover:bg-gray-800">
-                      Join Event
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      variant="outline"
+                      onClick={handleMessageHost}
+                      className="space-x-2"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Message Host</span>
                     </Button>
-                  )}
+                    
+                    {!isEventFull && (
+                      <Button onClick={handleJoinEvent} className="bg-black hover:bg-gray-800">
+                        Join Event
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -866,6 +902,38 @@ export default function EventDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Quick Actions */}
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="text-blue-800">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button 
+                  onClick={handleMessageHost}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  size="lg"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Message Host
+                </Button>
+                
+                {!isEventFull && (
+                  <Button 
+                    onClick={handleJoinEvent} 
+                    className="w-full bg-black hover:bg-gray-800"
+                    size="lg"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Join Event
+                  </Button>
+                )}
+                
+                <div className="text-xs text-blue-600 text-center">
+                  Connect with the host for questions or event details
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Event Information */}
             <Card>
               <CardHeader>
@@ -950,6 +1018,17 @@ export default function EventDetailPage() {
           </div>
         </div>
       </main>
+
+      {/* Floating Action Button for Mobile */}
+      <div className="fixed bottom-6 right-6 lg:hidden">
+        <Button
+          onClick={handleMessageHost}
+          className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg"
+          size="lg"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </Button>
+      </div>
     </div>
   );
 }
