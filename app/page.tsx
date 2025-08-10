@@ -228,101 +228,119 @@ export default function HomePage() {
       </section>
 
       {/* Featured Events */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold">Featured Events</h2>
-            <p className="max-w-2xl mx-auto text-xl text-muted-foreground">
-              Don't miss out on these exciting upcoming events
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 border-4 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-xl text-gray-600">Loading featured events...</p>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-100"
+          style={{
+            backgroundImage: `url('/Avalink.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        
+        {/* Dark overlay for better readability */}
+        <div className="absolute inset-0 bg-black/50" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          <div className="text-center space-y-12 sm:space-y-16">
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight">
+                Featured Events
+              </h2>
+              <p className="max-w-3xl mx-auto text-xl sm:text-2xl text-gray-200 leading-relaxed">
+                Don't miss out on these exciting upcoming events
+              </p>
             </div>
-          ) : featuredEvents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredEvents.map((event) => (
-                <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="relative h-48">
-                    <img
-                      src={event.image}
-                      alt={event.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/api/placeholder/400/250';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <Badge className="absolute top-4 right-4 bg-black text-white">
-                      Featured
-                    </Badge>
-                  </div>
 
-                  <CardContent className="p-6 space-y-4">
-                    <h3 className="text-xl font-semibold">{event.title}</h3>
-                    <p className="text-muted-foreground line-clamp-2">{event.description}</p>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center space-x-1 text-muted-foreground">
-                        <Users className="w-4 h-4" />
-                        <span>{event._count.participants} participants</span>
-                      </div>
-
-                      {event.prizePool && (
-                        <div className="flex items-center space-x-1 font-semibold text-green-600">
-                          <DollarSign className="w-4 h-4" />
-                          <span>${event.prizePool.toLocaleString()} prizes</span>
-                        </div>
-                      )}
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 border-4 border-gray-200 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-xl text-gray-200">Loading featured events...</p>
+              </div>
+            ) : featuredEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+                {featuredEvents.map((event) => (
+                  <Card key={event.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-[#1D1D1D]/90 backdrop-blur-sm border border-white/10">
+                    <div className="relative h-48 sm:h-56">
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/api/placeholder/400/250';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <Badge className="absolute top-4 right-4 bg-[#E94042] text-white">
+                        Featured
+                      </Badge>
                     </div>
 
-                    <Button
-                      onClick={() => window.location.href = `/event/${event.id}`}
-                      className="w-full bg-black hover:bg-gray-800"
-                    >
-                      View Details
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="max-w-md mx-auto">
-                <Calendar className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-                <h3 className="text-2xl font-semibold text-gray-700 mb-3">
-                  No Featured Events Yet
-                </h3>
-                <p className="text-gray-500 text-lg mb-6">
-                  Be the first to create an exciting event for the community!
-                </p>
+                    <CardContent className="p-6 space-y-4">
+                        <h3 className="text-xl font-semibold text-white text-left">{event.title}</h3>
+                        <p className="text-gray-300 line-clamp-2 text-left">{event.description}</p>
+
+                      <div className="text-sm">
+                        <div className="flex items-center space-x-1 text-gray-300">
+                          <Users className="w-4 h-4" />
+                          <span>{event._count.participants} participants</span>
+                        </div>
+
+                        {event.prizePool && (
+                          <div className="flex items-center space-x-1 font-semibold text-green-400">
+                            <DollarSign className="w-4 h-4" />
+                            <span>${event.prizePool.toLocaleString()} prizes</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <Button
+                        onClick={() => window.location.href = `/event/${event.id}`}
+                        className="w-full bg-[#E94042] hover:bg-[#E94042]/90 text-white"
+                      >
+                        View Details
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto bg-[#1D1D1D]/90 backdrop-blur-sm border border-white/10 rounded-lg p-8">
+                  <Calendar className="w-24 h-24 text-gray-300 mx-auto mb-6" />
+                  <h3 className="text-2xl font-semibold text-white mb-3">
+                    No Featured Events Yet
+                  </h3>
+                  <p className="text-gray-300 text-lg mb-6">
+                    Be the first to create an exciting event for the community!
+                  </p>
+                  <Button
+                    onClick={handleCreateEvent}
+                    className="bg-[#E94042] hover:bg-[#E94042]/90 text-white"
+                  >
+                    Create First Event
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {featuredEvents.length > 0 && (
+              <div className="text-center mt-12">
                 <Button
-                  onClick={handleCreateEvent}
-                  className="bg-black hover:bg-gray-800"
+                  onClick={handleExploreEvents}
+                  variant="outline"
+                  size="lg"
+                  className="px-8 py-4 text-lg border-white text-black hover:bg-white hover:text-black backdrop-blur-sm"
                 >
-                  Create First Event
+                  View All Events
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
-            </div>
-          )}
-
-          {featuredEvents.length > 0 && (
-            <div className="text-center mt-12">
-              <Button
-                onClick={handleExploreEvents}
-                variant="outline"
-                size="lg"
-                className="px-8"
-              >
-                View All Events
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
 

@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ethers } from 'ethers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +21,15 @@ import {
   Lock,
   AlertCircle
 } from 'lucide-react';
+
+// Dynamic import for ethers to avoid SSR issues
+const loadEthers = async () => {
+  if (typeof window !== 'undefined') {
+    const { ethers } = await import('ethers');
+    return ethers;
+  }
+  return null;
+};
 
 // Contract ABI and address
 const CONTRACT_ABI = [
@@ -138,9 +146,12 @@ interface FormErrors {
 }
 
 // Get contract instance
-const getEthereumContract = (): ethers.Contract | null => {
+const getEthereumContract = async () => {
 	try {
-		if (!window.ethereum) return null;
+		if (typeof window === 'undefined' || !window.ethereum) return null;
+
+		const ethers = await loadEthers();
+		if (!ethers) return null;
 
 		const provider = new ethers.providers.Web3Provider(window.ethereum);
 		const signer = provider.getSigner();
@@ -155,6 +166,7 @@ const getEthereumContract = (): ethers.Contract | null => {
 
 export default function CreateEventPage() {
 	const router = useRouter();
+	const [mounted, setMounted] = useState(false);
 	const [formData, setFormData] = useState<FormData>({
 		title: '',
 		description: '',
@@ -176,6 +188,23 @@ export default function CreateEventPage() {
 	const [lockingFunds, setLockingFunds] = useState(false);
 
 	const tags = ['web3', 'defi', 'nft', 'crypto', 'blockchain', 'gaming', 'sports', 'tech', 'music', 'art'];
+
+	// Set mounted state on client side
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	// Don't render until mounted to avoid SSR issues
+	if (!mounted) {
+		return (
+			<div className="min-h-screen bg-white flex items-center justify-center">
+				<div className="text-center">
+					<Save className="w-8 h-8 animate-pulse mx-auto mb-4" />
+					<p className="text-gray-600">Loading create event form...</p>
+				</div>
+			</div>
+		);
+	}
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		const { name, value } = e.target;
@@ -251,8 +280,11 @@ export default function CreateEventPage() {
 	// Update contract balance
 	const updateContractBalance = async () => {
 		try {
-			const contract = getEthereumContract();
+			const contract = await getEthereumContract();
 			if (!contract) return;
+
+			const ethers = await loadEthers();
+			if (!ethers) return;
 
 			const balance = await contract.getBalance();
 			const balanceInEther = ethers.utils.formatEther(balance);
@@ -268,9 +300,14 @@ export default function CreateEventPage() {
 		try {
 			setLockingFunds(true);
 
-			const contract = getEthereumContract();
+			const contract = await getEthereumContract();
 			if (!contract) {
 				throw new Error('Contract not available');
+			}
+
+			const ethers = await loadEthers();
+			if (!ethers) {
+				throw new Error('Ethers library not available');
 			}
 
 			const amountInWei = ethers.utils.parseEther(prizePoolAmount);
@@ -358,7 +395,7 @@ export default function CreateEventPage() {
 
 		try {
 			// Get token from localStorage
-			const token = localStorage.getItem('auth_token');
+			const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
 			if (!token) {
 				alert('Please login to create an event');
@@ -430,7 +467,7 @@ export default function CreateEventPage() {
 
 		try {
 			// Get token from localStorage
-			const token = localStorage.getItem('auth_token');
+			const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
 			if (!token) {
 				alert('Please login to create an event');
