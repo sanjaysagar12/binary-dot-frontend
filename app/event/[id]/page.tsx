@@ -577,7 +577,7 @@ export default function EventDetailPage() {
           <div className="flex items-center justify-between h-16">
             <Button 
               variant="ghost" 
-              onClick={() => window.location.href = '/event'}
+              onClick={() => window.location.href = '/'}
               className="inline-flex items-center space-x-2 text-white hover:bg-white hover:text-black"
             >
               <ArrowLeft className="w-4 h-4" />
