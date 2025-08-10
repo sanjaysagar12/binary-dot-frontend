@@ -123,7 +123,7 @@ export default function EventDetailPage() {
 
   const fetchEventDetail = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/event/${id}`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/event/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ export default function EventDetailPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/api/event/join/${eventId}`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/event/join/${eventId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -220,7 +220,7 @@ export default function EventDetailPage() {
       }
 
       // Step 2: Create comment with image URL
-      const response = await fetch('http://localhost:3000/api/event/comment', {
+      const response = await fetch('https://api-avalink.portos.cloud/api/event/comment', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -261,7 +261,7 @@ export default function EventDetailPage() {
     const token = localStorage.getItem('auth_token');
     console.log('Uploading to API...');
     
-    const response = await fetch('http://localhost:3000/api/image', {
+    const response = await fetch('https://api-avalink.portos.cloud/api/image', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -389,7 +389,7 @@ export default function EventDetailPage() {
         return;
       }
 
-      const response = await fetch('http://localhost:3000/api/event/comment/reply', {
+      const response = await fetch('https://api-avalink.portos.cloud/api/event/comment/reply', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

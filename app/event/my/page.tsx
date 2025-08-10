@@ -469,7 +469,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
   const fetchParticipants = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`http://localhost:3000/api/event/${event.id}/participants`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/event/${event.id}/participants`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -608,7 +608,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
           prizeAmount: winner.prizeAmount
         }));
 
-        const winnersResponse = await fetch(`http://localhost:3000/api/event/${event.id}/winners`, {
+        const winnersResponse = await fetch(`https://api-avalink.portos.cloud/api/event/${event.id}/winners`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -627,7 +627,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onClose, o
       }
 
       // Step 2: Mark event as completed (using existing status endpoint)
-      const statusResponse = await fetch(`http://localhost:3000/api/event/${event.id}/status`, {
+      const statusResponse = await fetch(`https://api-avalink.portos.cloud/api/event/${event.id}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -953,7 +953,7 @@ const EventManagementPage = () => {
   const fetchMyEvents = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('http://localhost:3000/api/event/my', {
+      const response = await fetch('https://api-avalink.portos.cloud/api/event/my', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -982,7 +982,7 @@ const EventManagementPage = () => {
   const handleEventClick = async (eventId: string) => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`http://localhost:3000/api/event/${eventId}`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/event/${eventId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -1009,7 +1009,7 @@ const EventManagementPage = () => {
     
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`http://localhost:3000/api/event/${eventId}/status`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/event/${eventId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

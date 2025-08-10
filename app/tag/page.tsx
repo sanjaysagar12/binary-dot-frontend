@@ -200,7 +200,7 @@ export default function TagPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:3000/api/event/all', {
+      const response = await fetch('https://api-avalink.portos.cloud/api/event/all', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +225,7 @@ export default function TagPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:3000/api/event/tag/${encodeURIComponent(tag)}`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/event/tag/${encodeURIComponent(tag)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -263,7 +263,7 @@ export default function TagPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/api/event/join/${eventId}`, {
+      const response = await fetch(`https://api-avalink.portos.cloud/api/event/join/${eventId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

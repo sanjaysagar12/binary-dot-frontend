@@ -51,7 +51,7 @@ export default function HomePage() {
 
   const fetchFeaturedEvents = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/event/all', {
+      const response = await fetch('https://api-avalink.portos.cloud/api/event/all', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

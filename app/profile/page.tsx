@@ -47,7 +47,7 @@ export default function ProfilePage() {
 
                 console.log('Token:', token);
                 
-                const response = await fetch('http://localhost:3000/api/user/me', {
+                const response = await fetch('https://api-avalink.portos.cloud/api/user/me', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,

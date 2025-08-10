@@ -63,7 +63,7 @@ export default function CallbackPage() {
 
   const checkExistingWallet = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/wallet/info', {
+      const response = await fetch('https://api-avalink.portos.cloud/api/wallet/info', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ export default function CallbackPage() {
       const token = localStorage.getItem('auth_token');
       
       // First try to create a new wallet
-      let response = await fetch('http://localhost:3000/api/wallet/create', {
+      let response = await fetch('https://api-avalink.portos.cloud/api/wallet/create', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -147,7 +147,7 @@ export default function CallbackPage() {
 
       // If creation fails (wallet might already exist), try updating
       if (!response.ok) {
-        response = await fetch('http://localhost:3000/api/wallet/update', {
+        response = await fetch('https://api-avalink.portos.cloud/api/wallet/update', {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,

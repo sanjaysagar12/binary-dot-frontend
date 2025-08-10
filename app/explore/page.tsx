@@ -81,7 +81,7 @@ export default function ExplorePage() {
         return;
       }
 
-      const response = await fetch('http://localhost:3000/api/event/comments/all', {
+      const response = await fetch('https://api-avalink.portos.cloud/api/event/comments/all', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
