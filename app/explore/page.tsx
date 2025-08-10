@@ -260,7 +260,7 @@ export default function ExplorePage() {
                 variant="outline" 
                 size="sm"
                 onClick={() => window.location.href = '/event/create'}
-                className="border-gray-600 text-gray-300 hover:bg-white/10"
+                className="border-gray-600 text-gray-300 bg-white text-black"
               >
                 Create Event
               </Button>
@@ -282,7 +282,7 @@ export default function ExplorePage() {
                   <p className="text-gray-300 mb-4">Be the first to start a conversation!</p>
                   <Button 
                     onClick={() => window.location.href = '/event'}
-                    className="bg-[#E94042] hover:bg-[#E94042]/90"
+                    className="bg-white text-black"
                   >
                     Browse Events
                   </Button>
@@ -522,7 +522,7 @@ export default function ExplorePage() {
                 <div className="border-t border-gray-600 pt-4 mt-4">
                   <Button 
                     variant="outline" 
-                    className="w-full border-gray-600 text-gray-300 hover:bg-white/10"
+                    className="w-full border-gray-600 text-gray-300 bg-white text-black"
                     onClick={() => window.location.href = '/'}
                   >
                     Browse Events
@@ -539,7 +539,7 @@ export default function ExplorePage() {
               <CardContent className="space-y-3">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-white/10"
+                  className="w-full justify-start border-gray-600 text-gray-300 bg-white text-black"
                   onClick={() => window.location.href = '/event/create'}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
@@ -547,7 +547,7 @@ export default function ExplorePage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-white/10"
+                  className="w-full justify-start border-gray-600 text-gray-300 bg-white text-black"
                   onClick={() => window.location.href = '/event/my'}
                 >
                   <Users className="w-4 h-4 mr-2" />
