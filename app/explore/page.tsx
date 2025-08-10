@@ -162,10 +162,21 @@ export default function ExplorePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading discussions...</p>
+      <div className="min-h-screen bg-[#161616] flex items-center justify-center relative overflow-hidden">
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url('/Avalink.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        <div className="fixed inset-0 bg-black/60" />
+        
+        <div className="text-center relative z-10">
+          <div className="w-8 h-8 border-2 border-[#E94042] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading discussions...</p>
         </div>
       </div>
     );
@@ -173,14 +184,25 @@ export default function ExplorePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="w-96 text-center">
+      <div className="min-h-screen bg-[#161616] flex items-center justify-center relative overflow-hidden">
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url('/Avalink.webp')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        <div className="fixed inset-0 bg-black/60" />
+        
+        <Card className="w-96 text-center bg-white/5 backdrop-blur-md border border-white/20 shadow-xl relative z-10">
           <CardContent className="pt-6">
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h2>
-            <p className="text-muted-foreground mb-4">{error}</p>
+            <h2 className="text-2xl font-bold text-red-400 mb-2">Access Denied</h2>
+            <p className="text-gray-300 mb-4">{error}</p>
             <Button
               onClick={() => window.location.href = '/auth/login'}
-              className="bg-black hover:bg-gray-800"
+              className="bg-[#E94042] hover:bg-[#E94042]/90"
             >
               Login to Continue
             </Button>
@@ -191,13 +213,27 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#161616] relative overflow-hidden">
+      {/* Background Image */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        style={{
+          backgroundImage: `url('/Avalink.webp')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundAttachment: 'fixed'
+        }}
+      />
+      
+      {/* Dark overlay */}
+      <div className="fixed inset-0 bg-black/60" />
+
       {/* Header */}
-      <div className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="border-b border-gray-700 bg-black/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-6">
-              <h1 className="text-xl font-semibold">Explore Discussions</h1>
+              <h1 className="text-xl font-semibold text-white">Explore Discussions</h1>
               
               <nav className="flex space-x-4">
                 {['hot', 'new', 'top'].map((tab) => (
@@ -206,8 +242,8 @@ export default function ExplorePage() {
                     onClick={() => setActiveTab(tab as any)}
                     className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                       activeTab === tab
-                        ? 'bg-black text-white'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        ? 'bg-[#E94042] text-white'
+                        : 'text-gray-300 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     {tab === 'hot' && <TrendingUp className="w-4 h-4 mr-1 inline" />}
@@ -224,6 +260,7 @@ export default function ExplorePage() {
                 variant="outline" 
                 size="sm"
                 onClick={() => window.location.href = '/event/create'}
+                className="border-gray-600 text-gray-300 bg-white text-black"
               >
                 Create Event
               </Button>
@@ -232,20 +269,20 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Main Feed */}
           <div className="lg:col-span-2 space-y-4">
             {comments.length === 0 ? (
-              <Card>
+              <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl">
                 <CardContent className="text-center py-16">
                   <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No Discussions Found</h3>
-                  <p className="text-gray-500 mb-4">Be the first to start a conversation!</p>
+                  <h3 className="text-xl font-semibold text-white mb-2">No Discussions Found</h3>
+                  <p className="text-gray-300 mb-4">Be the first to start a conversation!</p>
                   <Button 
                     onClick={() => window.location.href = '/event'}
-                    className="bg-black hover:bg-gray-800"
+                    className="bg-white text-black"
                   >
                     Browse Events
                   </Button>
@@ -253,12 +290,12 @@ export default function ExplorePage() {
               </Card>
             ) : (
               comments.map((comment) => (
-                <Card key={comment.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                <Card key={comment.id} className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300 overflow-hidden">
                   <CardContent className="p-0">
                     
                     {/* Event Header */}
                     <div 
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 cursor-pointer hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+                      className="bg-gradient-to-r from-[#E94042] to-purple-600 p-4 cursor-pointer hover:from-[#E94042]/90 hover:to-purple-700 transition-all duration-200"
                       onClick={() => navigateToEvent(comment.event.id)}
                     >
                       <div className="flex items-center justify-between">
@@ -266,7 +303,7 @@ export default function ExplorePage() {
                           <h3 className="text-white font-semibold text-lg">
                             {comment.event.title}
                           </h3>
-                          <p className="text-blue-100 text-sm">Click to view event</p>
+                          <p className="text-gray-200 text-sm">Click to view event</p>
                         </div>
                         <Badge className="bg-white/20 text-white border-white/30">
                           Discussion
@@ -282,18 +319,18 @@ export default function ExplorePage() {
                             variant={commentVotes[comment.id] === 'up' ? "default" : "ghost"}
                             size="sm"
                             onClick={() => handleVote(comment.id, 'up')}
-                            className="p-2"
+                            className={`p-2 ${commentVotes[comment.id] === 'up' ? 'bg-[#E94042] hover:bg-[#E94042]/90' : 'text-gray-300 hover:bg-white/10'}`}
                           >
                             <ArrowUp className="w-4 h-4" />
                           </Button>
-                          <span className="font-medium text-sm">
+                          <span className="font-medium text-sm text-white">
                             {(commentVotes[comment.id] === 'up' ? 1 : 0) - (commentVotes[comment.id] === 'down' ? 1 : 0)}
                           </span>
                           <Button 
                             variant={commentVotes[comment.id] === 'down' ? "default" : "ghost"}
                             size="sm"
                             onClick={() => handleVote(comment.id, 'down')}
-                            className="p-2"
+                            className={`p-2 ${commentVotes[comment.id] === 'down' ? 'bg-[#E94042] hover:bg-[#E94042]/90' : 'text-gray-300 hover:bg-white/10'}`}
                           >
                             <ArrowDown className="w-4 h-4" />
                           </Button>
@@ -301,13 +338,13 @@ export default function ExplorePage() {
 
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-3">
-                            <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                            <div className="w-8 h-8 bg-[#E94042] rounded-full flex items-center justify-center">
                               <span className="text-white text-sm font-bold">
                                 {comment.user.name.charAt(0).toUpperCase()}
                               </span>
                             </div>
-                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                              <span className="font-medium text-foreground">u/{comment.user.name}</span>
+                            <div className="flex items-center space-x-2 text-sm text-gray-400">
+                              <span className="font-medium text-white">u/{comment.user.name}</span>
                               <span>•</span>
                               <span>{formatDate(comment.createdAt)}</span>
                             </div>
@@ -315,7 +352,7 @@ export default function ExplorePage() {
 
                           {/* Comment Content */}
                           <div className="mb-4">
-                            <p className="text-foreground leading-relaxed mb-3">
+                            <p className="text-gray-300 leading-relaxed mb-3">
                               {comment.content}
                             </p>
 
@@ -325,7 +362,7 @@ export default function ExplorePage() {
                                 <img
                                   src={comment.image}
                                   alt="Comment attachment"
-                                  className="max-w-md max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-95 transition-opacity duration-200"
+                                  className="max-w-md max-h-64 rounded-lg border border-gray-600 cursor-pointer hover:opacity-95 transition-opacity duration-200"
                                   onClick={() => window.open(comment.image, '_blank')}
                                 />
                               </div>
@@ -334,16 +371,16 @@ export default function ExplorePage() {
 
                           {/* Actions */}
                           <div className="flex items-center space-x-4">
-                            <Button variant="ghost" size="sm" className="space-x-1">
+                            <Button variant="ghost" size="sm" className="space-x-1 text-gray-300 hover:bg-white/10">
                               <MessageCircle className="w-4 h-4" />
                               <span>{comment._count.replies}</span>
                             </Button>
                             
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" className="text-gray-300 hover:bg-white/10">
                               <Share className="w-4 h-4" />
                             </Button>
                             
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" className="text-gray-300 hover:bg-white/10">
                               <Bookmark className="w-4 h-4" />
                             </Button>
 
@@ -352,7 +389,7 @@ export default function ExplorePage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => toggleReplies(comment.id)}
-                                className="ml-auto text-blue-600 hover:text-blue-700"
+                                className="ml-auto text-[#E94042] hover:text-[#E94042]/80 hover:bg-white/10"
                               >
                                 {expandedComments[comment.id] ? 'Hide' : 'Show'} {comment.replies.length} replies
                               </Button>
@@ -362,26 +399,26 @@ export default function ExplorePage() {
                           {/* Replies */}
                           {expandedComments[comment.id] && comment.replies.length > 0 && (
                             <div className="mt-6 space-y-4">
-                              <div className="border-l-2 border-muted pl-6">
+                              <div className="border-l-2 border-gray-600 pl-6">
                                 {comment.replies.map((reply) => (
-                                  <div key={reply.id} className="bg-muted/30 rounded-lg p-4 mb-4">
+                                  <div key={reply.id} className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-4">
                                     <div className="flex items-center space-x-3 mb-3">
-                                      <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                                        <span className="text-gray-600 text-xs font-medium">
+                                      <div className="w-6 h-6 bg-[#E94042] rounded-full flex items-center justify-center">
+                                        <span className="text-white text-xs font-medium">
                                           {reply.user.name.charAt(0).toUpperCase()}
                                         </span>
                                       </div>
                                       <div className="flex items-center space-x-2">
-                                        <span className="font-medium text-sm">
+                                        <span className="font-medium text-sm text-white">
                                           u/{reply.user.name}
                                         </span>
                                         <span className="text-gray-400">•</span>
-                                        <span className="text-xs text-muted-foreground">
+                                        <span className="text-xs text-gray-400">
                                           {formatDate(reply.createdAt)}
                                         </span>
                                       </div>
                                     </div>
-                                    <p className="text-sm leading-relaxed">
+                                    <p className="text-sm leading-relaxed text-gray-300">
                                       {reply.content}
                                     </p>
                                     
@@ -389,22 +426,22 @@ export default function ExplorePage() {
                                     {reply.childReplies.length > 0 && (
                                       <div className="mt-4 ml-6 space-y-3">
                                         {reply.childReplies.map((childReply) => (
-                                          <div key={childReply.id} className="bg-background rounded-lg p-3 border">
+                                          <div key={childReply.id} className="bg-white/5 backdrop-blur-sm rounded-lg p-3 border border-white/20">
                                             <div className="flex items-center space-x-2 mb-2">
-                                              <div className="w-5 h-5 bg-gray-50 rounded-full flex items-center justify-center">
-                                                <span className="text-gray-500 text-xs">
+                                              <div className="w-5 h-5 bg-[#E94042] rounded-full flex items-center justify-center">
+                                                <span className="text-white text-xs">
                                                   {childReply.user.name.charAt(0).toUpperCase()}
                                                 </span>
                                               </div>
-                                              <span className="font-medium text-xs">
+                                              <span className="font-medium text-xs text-white">
                                                 u/{childReply.user.name}
                                               </span>
                                               <span className="text-gray-400">•</span>
-                                              <span className="text-xs text-muted-foreground">
+                                              <span className="text-xs text-gray-400">
                                                 {formatDate(childReply.createdAt)}
                                               </span>
                                             </div>
-                                            <p className="text-xs leading-relaxed">
+                                            <p className="text-xs leading-relaxed text-gray-300">
                                               {childReply.content}
                                             </p>
                                           </div>
@@ -429,9 +466,9 @@ export default function ExplorePage() {
           <div className="space-y-6">
             
             {/* Trending Topics */}
-            <Card>
+            <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+                <CardTitle className="flex items-center space-x-2 text-white">
                   <TrendingUp className="w-5 h-5" />
                   <span>Trending</span>
                 </CardTitle>
@@ -445,10 +482,10 @@ export default function ExplorePage() {
                 ].map((topic) => (
                   <div key={topic.tag} className="flex items-center justify-between">
                     <div>
-                      <span className="font-medium">#{topic.tag}</span>
-                      <p className="text-xs text-muted-foreground">{topic.posts}k discussions</p>
+                      <span className="font-medium text-white">#{topic.tag}</span>
+                      <p className="text-xs text-gray-400">{topic.posts}k discussions</p>
                     </div>
-                    <Badge variant="outline" className={getTagColor(topic.tag)}>
+                    <Badge variant="outline" className="border-[#E94042] text-[#E94042]">
                       Trending
                     </Badge>
                   </div>
@@ -457,18 +494,18 @@ export default function ExplorePage() {
             </Card>
 
             {/* Community Stats */}
-            <Card>
+            <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
               <CardHeader>
-                <CardTitle>Community Activity</CardTitle>
+                <CardTitle className="text-white">Community Activity</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Total Discussions</span>
-                  <span className="font-semibold">{comments.length}</span>
+                  <span className="text-sm text-gray-400">Total Discussions</span>
+                  <span className="font-semibold text-white">{comments.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Active Today</span>
-                  <span className="font-semibold">
+                  <span className="text-sm text-gray-400">Active Today</span>
+                  <span className="font-semibold text-white">
                     {comments.filter(c => {
                       const today = new Date();
                       const commentDate = new Date(c.createdAt);
@@ -477,15 +514,15 @@ export default function ExplorePage() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Total Replies</span>
-                  <span className="font-semibold">
+                  <span className="text-sm text-gray-400">Total Replies</span>
+                  <span className="font-semibold text-white">
                     {comments.reduce((sum, c) => sum + c._count.replies, 0)}
                   </span>
                 </div>
-                <div className="border-t pt-4 mt-4">
+                <div className="border-t border-gray-600 pt-4 mt-4">
                   <Button 
                     variant="outline" 
-                    className="w-full"
+                    className="w-full border-gray-600 text-gray-300 bg-white text-black"
                     onClick={() => window.location.href = '/'}
                   >
                     Browse Events
@@ -495,14 +532,14 @@ export default function ExplorePage() {
             </Card>
 
             {/* Quick Actions */}
-            <Card>
+            <Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="text-white">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start border-gray-600 text-gray-300 bg-white text-black"
                   onClick={() => window.location.href = '/event/create'}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
@@ -510,7 +547,7 @@ export default function ExplorePage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start border-gray-600 text-gray-300 bg-white text-black"
                   onClick={() => window.location.href = '/event/my'}
                 >
                   <Users className="w-4 h-4 mr-2" />

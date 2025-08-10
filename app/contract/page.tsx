@@ -1,6 +1,26 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Wallet, 
+  RefreshCw, 
+  Lock, 
+  Send, 
+  Plus, 
+  X, 
+  ExternalLink, 
+  Crown, 
+  User, 
+  DollarSign,
+  Shield,
+  AlertCircle,
+  Loader2
+} from "lucide-react";
 
 // TypeScript interfaces
 interface SwitchError {
@@ -434,228 +454,354 @@ export default function EtherDistributionDApp() {
   }, [account]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🚀 Ether Distribution DApp</h1>
-          <p className="text-blue-200">Powered by Ethers.js | Avalanche Fuji Testnet</p>
-          <p className="text-xs text-gray-400 mt-2 break-all">Contract: {CONTRACT_ADDRESS}</p>
-        </div>
-
-        {!account ? (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="bg-black text-white py-8">
+        <div className="max-w-4xl mx-auto px-6">
           <div className="text-center">
-            <button
-              onClick={connectWallet}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-10 rounded-xl transition duration-200 transform hover:scale-105 shadow-lg"
-            >
-              🦊 Connect MetaMask
-            </button>
-            <div className="mt-6 text-center">
-              <p className="text-gray-300 text-sm mb-2">
-                Make sure you have MetaMask installed and some Fuji AVAX for gas fees
-              </p>
-              <a 
-                href="https://faucet.avax.network/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-block bg-green-500/20 hover:bg-green-500/30 text-green-300 px-4 py-2 rounded-lg transition duration-200 text-sm"
-              >
-                💰 Get free Fuji AVAX
-              </a>
-            </div>
+            <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3">
+              <Shield className="w-8 h-8" />
+              Ether Distribution DApp
+            </h1>
+            <p className="text-gray-300 text-lg">Powered by Ethers.js | Avalanche Fuji Testnet</p>
+            <Badge variant="outline" className="mt-3 bg-white/10 text-white border-white/20">
+              Contract: {CONTRACT_ADDRESS}
+            </Badge>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {!account ? (
+          <div className="text-center space-y-6">
+            <Card className="max-w-md mx-auto">
+              <CardHeader className="text-center">
+                <CardTitle className="flex items-center justify-center gap-2">
+                  <Wallet className="w-5 h-5" />
+                  Connect Your Wallet
+                </CardTitle>
+                <CardDescription>
+                  Connect MetaMask to interact with the smart contract
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  onClick={connectWallet}
+                  className="w-full h-12"
+                  size="lg"
+                >
+                  <Wallet className="w-5 h-5 mr-2" />
+                  Connect MetaMask
+                </Button>
+                
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-gray-600">
+                    Make sure you have MetaMask installed and some Fuji AVAX for gas fees
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <a 
+                      href="https://faucet.avax.network/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2"
+                    >
+                      <DollarSign className="w-4 h-4" />
+                      Get free Fuji AVAX
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Account Info */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                📊 Contract Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-300">Your Address:</p>
-                  <p className="text-white font-mono break-all">{account}</p>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Contract Information
+                </CardTitle>
+                <CardDescription>
+                  View contract details and your connection status
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Your Address</Label>
+                    <p className="font-mono text-sm bg-gray-50 p-2 rounded border break-all">{account}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Contract Balance</Label>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-lg font-bold px-3 py-1">
+                        {contractBalance} AVAX
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Host Address</Label>
+                    <p className="font-mono text-sm bg-gray-50 p-2 rounded border break-all">{hostAddress}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Your Role</Label>
+                    <Badge variant={isHost ? "default" : "secondary"} className="text-sm">
+                      {isHost ? (
+                        <>
+                          <Crown className="w-4 h-4 mr-1" />
+                          HOST
+                        </>
+                      ) : (
+                        <>
+                          <User className="w-4 h-4 mr-1" />
+                          USER
+                        </>
+                      )}
+                    </Badge>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-300">Contract Balance:</p>
-                  <p className="text-white font-bold text-lg">{contractBalance} AVAX</p>
+                
+                <div className="mt-6 pt-6 border-t">
+                  <Button
+                    onClick={updateContractInfo}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh Info
+                  </Button>
                 </div>
-                <div>
-                  <p className="text-gray-300">Host Address:</p>
-                  <p className="text-white font-mono break-all">{hostAddress}</p>
-                </div>
-                <div>
-                  <p className="text-gray-300">Your Role:</p>
-                  <p className={`font-bold text-lg ${isHost ? 'text-green-400' : 'text-yellow-400'}`}>
-                    {isHost ? '👑 HOST' : '👤 USER'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-white/20">
-                <button
-                  onClick={updateContractInfo}
-                  className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 px-4 py-2 rounded-lg transition duration-200 text-sm"
-                >
-                  🔄 Refresh Info
-                </button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            {isHost && (
+            {isHost ? (
               <>
                 {/* Lock Funds */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                    🔒 Send Funds to Contract
-                  </h2>
-                  <div className="flex gap-4 items-end">
-                    <div className="flex-1">
-                      <label className="block text-gray-300 mb-2">Amount (AVAX)</label>
-                      <input
-                        type="number"
-                        step="0.001"
-                        min="0"
-                        value={lockAmount}
-                        onChange={(e) => setLockAmount(e.target.value)}
-                        placeholder="0.0"
-                        className="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20"
-                      />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Lock className="w-5 h-5" />
+                      Send Funds to Contract
+                    </CardTitle>
+                    <CardDescription>
+                      Lock AVAX in the contract for later distribution
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="amount">Amount (AVAX)</Label>
+                        <Input
+                          id="amount"
+                          type="number"
+                          step="0.001"
+                          min="0"
+                          value={lockAmount}
+                          onChange={(e) => setLockAmount(e.target.value)}
+                          placeholder="0.0"
+                        />
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={lockFunds}
+                          disabled={loading || !lockAmount || parseFloat(lockAmount) <= 0}
+                          className="flex-1"
+                        >
+                          {loading ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Lock className="w-4 h-4 mr-2" />
+                          )}
+                          Lock Funds
+                        </Button>
+                        <Button
+                          onClick={sendDirectToContract}
+                          disabled={loading || !lockAmount || parseFloat(lockAmount) <= 0}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          {loading ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4 mr-2" />
+                          )}
+                          Direct Send
+                        </Button>
+                      </div>
+                      
+                      <div className="text-xs text-gray-600 space-y-1 p-3 bg-gray-50 rounded">
+                        <p><strong>Lock:</strong> Calls lockFunds() function</p>
+                        <p><strong>Direct Send:</strong> Direct transfer (triggers receive() function)</p>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={lockFunds}
-                        disabled={loading || !lockAmount || parseFloat(lockAmount) <= 0}
-                        className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-semibold transition duration-200"
-                      >
-                        {loading ? '⏳' : '🔒'} Lock
-                      </button>
-                      <button
-                        onClick={sendDirectToContract}
-                        disabled={loading || !lockAmount || parseFloat(lockAmount) <= 0}
-                        className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-semibold transition duration-200"
-                      >
-                        {loading ? '⏳' : '📤'} Send
-                      </button>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-gray-400 space-y-1">
-                    <p>🔒 <strong>Lock:</strong> Calls lockFunds() function</p>
-                    <p>📤 <strong>Send:</strong> Direct transfer (triggers receive() function)</p>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
 
                 {/* Distribute Funds */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                    📤 Distribute Funds
-                  </h2>
-                  
-                  <div className="space-y-3 mb-4">
-                    {recipients.map((recipient, index) => (
-                      <div key={index} className="flex gap-2 items-center">
-                        <div className="flex-1">
-                          <input
-                            type="text"
-                            value={recipient}
-                            onChange={(e) => updateRecipient(index, e.target.value)}
-                            placeholder="Recipient address (0x...)"
-                            className="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20"
-                          />
-                        </div>
-                        <div className="w-32">
-                          <input
-                            type="number"
-                            step="0.001"
-                            min="0"
-                            value={amounts[index]}
-                            onChange={(e) => updateAmount(index, e.target.value)}
-                            placeholder="Amount"
-                            className="w-full p-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20"
-                          />
-                        </div>
-                        {recipients.length > 1 && (
-                          <button
-                            onClick={() => removeRecipient(index)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded-lg transition duration-200"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Send className="w-5 h-5" />
+                      Distribute Funds
+                    </CardTitle>
+                    <CardDescription>
+                      Send AVAX from contract to multiple recipients
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {recipients.map((recipient, index) => (
+                        <Card key={index} className="p-4">
+                          <div className="flex gap-3 items-start">
+                            <div className="flex-1 space-y-2">
+                              <Label htmlFor={`recipient-${index}`}>Recipient Address</Label>
+                              <Input
+                                id={`recipient-${index}`}
+                                type="text"
+                                value={recipient}
+                                onChange={(e) => updateRecipient(index, e.target.value)}
+                                placeholder="0x..."
+                              />
+                            </div>
+                            <div className="w-32 space-y-2">
+                              <Label htmlFor={`amount-${index}`}>Amount</Label>
+                              <Input
+                                id={`amount-${index}`}
+                                type="number"
+                                step="0.001"
+                                min="0"
+                                value={amounts[index]}
+                                onChange={(e) => updateAmount(index, e.target.value)}
+                                placeholder="0.0"
+                              />
+                            </div>
+                            {recipients.length > 1 && (
+                              <Button
+                                onClick={() => removeRecipient(index)}
+                                variant="destructive"
+                                size="sm"
+                                className="mt-6"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </Card>
+                      ))}
 
-                  {/* Show total amount */}
-                  {recipients.some((addr, i) => addr && amounts[i] && parseFloat(amounts[i]) > 0) && (
-                    <div className="mb-4 p-3 bg-blue-500/20 rounded-lg">
-                      <p className="text-blue-200 text-sm">
-                        Total to distribute: {
-                          amounts.reduce((sum, amt, i) => {
-                            return recipients[i] && amt && parseFloat(amt) > 0 
-                              ? sum + parseFloat(amt) 
-                              : sum;
-                          }, 0).toFixed(6)
-                        } AVAX
-                      </p>
-                      <p className="text-blue-200 text-xs">
-                        Contract balance: {contractBalance} AVAX
+                      {/* Show total amount */}
+                      {recipients.some((addr, i) => addr && amounts[i] && parseFloat(amounts[i]) > 0) && (
+                        <Card className="bg-blue-50 border-blue-200">
+                          <CardContent className="p-4">
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium">
+                                Total to distribute: {
+                                  amounts.reduce((sum, amt, i) => {
+                                    return recipients[i] && amt && parseFloat(amt) > 0 
+                                      ? sum + parseFloat(amt) 
+                                      : sum;
+                                  }, 0).toFixed(6)
+                                } AVAX
+                              </p>
+                              <p className="text-xs text-gray-600">
+                                Contract balance: {contractBalance} AVAX
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={addRecipient}
+                          variant="outline"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Recipient
+                        </Button>
+                        <Button
+                          onClick={distributeFunds}
+                          disabled={loading}
+                          className="flex-1"
+                        >
+                          {loading ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4 mr-2" />
+                          )}
+                          {loading ? 'Distributing...' : 'Distribute Funds'}
+                        </Button>
+                      </div>
+                      
+                      <p className="text-xs text-gray-600 p-3 bg-gray-50 rounded">
+                        This calls distributeFunds() to send AVAX from contract to multiple recipients
                       </p>
                     </div>
-                  )}
-
-                  <div className="flex gap-4">
-                    <button
-                      onClick={addRecipient}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200"
-                    >
-                      ➕ Add Recipient
-                    </button>
-                    <button
-                      onClick={distributeFunds}
-                      disabled={loading}
-                      className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-semibold transition duration-200"
-                    >
-                      {loading ? '⏳ Distributing...' : '📤 Distribute Funds'}
-                    </button>
-                  </div>
-                  <p className="text-gray-400 text-xs mt-2">
-                    This calls distributeFunds() to send AVAX from contract to multiple recipients
-                  </p>
-                </div>
+                  </CardContent>
+                </Card>
               </>
-            )}
-
-            {!isHost && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 text-center">
-                <h2 className="text-xl font-semibold text-white mb-2">🚫 Not Authorized</h2>
-                <p className="text-gray-300">Only the contract host can lock and distribute funds.</p>
-                <p className="text-sm text-gray-400 mt-2">You can view the contract state but cannot perform transactions.</p>
-              </div>
+            ) : (
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2 text-red-600">
+                    <AlertCircle className="w-5 h-5" />
+                    Not Authorized
+                  </CardTitle>
+                  <CardDescription>
+                    Only the contract host can lock and distribute funds
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-sm text-gray-600">
+                    You can view the contract state but cannot perform transactions.
+                  </p>
+                </CardContent>
+              </Card>
             )}
 
             {/* Links */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 text-center">
-              <h3 className="text-lg font-semibold text-white mb-3">🔗 Useful Links</h3>
-              <div className="flex flex-wrap gap-4 justify-center">
-                <a 
-                  href={`https://testnet.snowtrace.io/address/${CONTRACT_ADDRESS}`}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-4 py-2 rounded-lg transition duration-200 text-sm"
-                >
-                  🔍 View Contract
-                </a>
-                <a 
-                  href="https://faucet.avax.network/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-green-500/20 hover:bg-green-500/30 text-green-300 px-4 py-2 rounded-lg transition duration-200 text-sm"
-                >
-                  💰 Get Fuji AVAX
-                </a>
-              </div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ExternalLink className="w-5 h-5" />
+                  Useful Links
+                </CardTitle>
+                <CardDescription>
+                  External resources and contract information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="outline" size="sm" asChild>
+                    <a 
+                      href={`https://testnet.snowtrace.io/address/${CONTRACT_ADDRESS}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2"
+                    >
+                      <Shield className="w-4 h-4" />
+                      View Contract
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <a 
+                      href="https://faucet.avax.network/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2"
+                    >
+                      <DollarSign className="w-4 h-4" />
+                      Get Fuji AVAX
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
