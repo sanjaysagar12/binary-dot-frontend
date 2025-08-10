@@ -531,28 +531,55 @@ export default function CreateEventPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-white">
+		<div className="min-h-screen bg-[#161616] relative overflow-hidden">
+			{/* Global style override for focus states */}
+			<style jsx global>{`
+				input:focus,
+				textarea:focus,
+				input:focus-visible,
+				textarea:focus-visible {
+					outline: none !important;
+					border-color: rgb(75 85 99) !important;
+					box-shadow: none !important;
+					ring: none !important;
+				}
+			`}</style>
+
+			{/* Background Image */}
+			<div
+				className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-80"
+				style={{
+					backgroundImage: `url('/Avalink.webp')`,
+					backgroundSize: 'cover',
+					backgroundPosition: 'center center',
+					backgroundAttachment: 'fixed'
+				}}
+			/>
+			
+			{/* Dark overlay */}
+			<div className="fixed inset-0 bg-black/60" />
+
 			{/* Header */}
-			<div className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div className="border-b bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-gray-700">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 					<div className="flex items-center justify-between h-16">
 						<div className="flex items-center space-x-4">
 							<Button 
 								variant="ghost" 
 								onClick={() => router.back()}
-								className="inline-flex items-center space-x-2"
+								className="inline-flex items-center space-x-2 text-white "
 							>
 								<ArrowLeft className="w-4 h-4" />
 								<span>Back</span>
 							</Button>
 							
-							<div className="h-6 w-px bg-gray-300" />
+							<div className="h-6 w-px bg-gray-600" />
 							
-							<h1 className="text-xl font-semibold">Create New Event</h1>
+							<h1 className="text-xl font-semibold text-white">Create New Event</h1>
 						</div>
 
 						<div className="flex items-center space-x-2">
-							<Button variant="outline" size="sm">
+							<Button variant="outline" size="sm" className="border-gray-600 text-gray-300 text-black">
 								<Eye className="w-4 h-4 mr-2" />
 								Preview
 							</Button>
@@ -560,7 +587,7 @@ export default function CreateEventPage() {
 							<Button 
 								onClick={handleButtonSubmit}
 								disabled={isSubmitting || lockingFunds}
-								className="bg-black hover:bg-gray-800"
+								className="bg-[#E94042] hover:bg-[#E94042]/90 text-white"
 								size="sm"
 							>
 								{lockingFunds ? (
@@ -582,32 +609,32 @@ export default function CreateEventPage() {
 				</div>
 			</div>
 
-			<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
 				<form onSubmit={handleSubmit} className="space-y-8">
 					
 					{/* Basic Information */}
-					<Card>
+					<Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
 						<CardHeader>
-							<CardTitle>Basic Information</CardTitle>
+							<CardTitle className="text-white">Basic Information</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-6">
 							<div className="space-y-2">
-								<Label htmlFor="title">Event Title *</Label>
+								<Label htmlFor="title" className="text-gray-200">Event Title *</Label>
 								<Input
 									id="title"
 									name="title"
 									value={formData.title}
 									onChange={handleChange}
 									placeholder="Enter event title"
-									className={errors.title ? 'border-red-500' : ''}
+									className={`bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600 ${errors.title ? 'border-red-500' : ''}`}
 								/>
 								{errors.title && (
-									<p className="text-sm text-red-600">{errors.title}</p>
+									<p className="text-sm text-red-400">{errors.title}</p>
 								)}
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="description">Description *</Label>
+								<Label htmlFor="description" className="text-gray-200">Description *</Label>
 								<Textarea
 									id="description"
 									name="description"
@@ -615,30 +642,30 @@ export default function CreateEventPage() {
 									onChange={handleChange}
 									placeholder="Describe your event..."
 									rows={4}
-									className={errors.description ? 'border-red-500' : ''}
+									className={`bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600 ${errors.description ? 'border-red-500' : ''}`}
 								/>
 								{errors.description && (
-									<p className="text-sm text-red-600">{errors.description}</p>
+									<p className="text-sm text-red-400">{errors.description}</p>
 								)}
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="image">Event Image URL</Label>
+								<Label htmlFor="image" className="text-gray-200">Event Image URL</Label>
 								<div className="relative">
-									<ImageIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+									<ImageIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 									<Input
 										id="image"
 										name="image"
 										value={formData.image}
 										onChange={handleChange}
 										placeholder="https://example.com/image.jpg"
-										className="pl-10"
+										className="pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600"
 									/>
 								</div>
 							</div>
 
 							<div className="space-y-2">
-								<Label>Category</Label>
+								<Label className="text-gray-200">Category</Label>
 								<div className="flex flex-wrap gap-2">
 									{tags.map((tag) => (
 										<Badge
@@ -646,8 +673,8 @@ export default function CreateEventPage() {
 											variant={formData.tag === tag ? "default" : "outline"}
 											className={`cursor-pointer ${
 												formData.tag === tag 
-													? 'bg-black text-white' 
-													: 'hover:bg-gray-100'
+													? 'bg-[#E94042] text-white hover:bg-[#E94042]/90' 
+													: 'border-gray-600 text-gray-300 hover:bg-gray-700'
 											}`}
 											onClick={() => setFormData(prev => ({ ...prev, tag }))}
 										>
@@ -660,60 +687,60 @@ export default function CreateEventPage() {
 					</Card>
 
 					{/* Location & Timing */}
-					<Card>
+					<Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
 						<CardHeader>
-							<CardTitle>Location & Timing</CardTitle>
+							<CardTitle className="text-white">Location & Timing</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-6">
 							<div className="space-y-2">
-								<Label htmlFor="location">Location</Label>
+								<Label htmlFor="location" className="text-gray-200">Location</Label>
 								<div className="relative">
-									<MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+									<MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 									<Input
 										id="location"
 										name="location"
 										value={formData.location}
 										onChange={handleChange}
 										placeholder="Event location or 'Online'"
-										className="pl-10"
+										className="pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600"
 									/>
 								</div>
 							</div>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 								<div className="space-y-2">
-									<Label htmlFor="startDate">Start Date *</Label>
+									<Label htmlFor="startDate" className="text-gray-200">Start Date *</Label>
 									<div className="relative">
-										<Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 										<Input
 											id="startDate"
 											name="startDate"
 											type="datetime-local"
 											value={formData.startDate}
 											onChange={handleChange}
-											className={`pl-10 ${errors.startDate ? 'border-red-500' : ''}`}
+											className={`pl-10 bg-gray-800/50 border-gray-600 text-white focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600 ${errors.startDate ? 'border-red-500' : ''}`}
 										/>
 									</div>
 									{errors.startDate && (
-										<p className="text-sm text-red-600">{errors.startDate}</p>
+										<p className="text-sm text-red-400">{errors.startDate}</p>
 									)}
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="endDate">End Date *</Label>
+									<Label htmlFor="endDate" className="text-gray-200">End Date *</Label>
 									<div className="relative">
-										<Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 										<Input
 											id="endDate"
 											name="endDate"
 											type="datetime-local"
 											value={formData.endDate}
 											onChange={handleChange}
-											className={`pl-10 ${errors.endDate ? 'border-red-500' : ''}`}
+											className={`pl-10 bg-gray-800/50 border-gray-600 text-white focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600 ${errors.endDate ? 'border-red-500' : ''}`}
 										/>
 									</div>
 									{errors.endDate && (
-										<p className="text-sm text-red-600">{errors.endDate}</p>
+										<p className="text-sm text-red-400">{errors.endDate}</p>
 									)}
 								</div>
 							</div>
@@ -721,16 +748,16 @@ export default function CreateEventPage() {
 					</Card>
 
 					{/* Prize Pool & Wallet Connection */}
-					<Card>
+					<Card className="bg-white/5 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/7 transition-all duration-300">
 						<CardHeader>
-							<CardTitle>Prize Pool & Blockchain</CardTitle>
+							<CardTitle className="text-white">Prize Pool & Blockchain</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-6">
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 								<div className="space-y-2">
-									<Label htmlFor="maxParticipants">Max Participants</Label>
+									<Label htmlFor="maxParticipants" className="text-gray-200">Max Participants</Label>
 									<div className="relative">
-										<Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 										<Input
 											id="maxParticipants"
 											name="maxParticipants"
@@ -738,15 +765,15 @@ export default function CreateEventPage() {
 											value={formData.maxParticipants}
 											onChange={handleChange}
 											placeholder="Unlimited"
-											className="pl-10"
+											className="pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600"
 										/>
 									</div>
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="prizePool">Prize Pool (AVAX)</Label>
+									<Label htmlFor="prizePool" className="text-gray-200">Prize Pool (AVAX)</Label>
 									<div className="relative">
-										<DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+										<DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 										<Input
 											id="prizePool"
 											name="prizePool"
@@ -755,16 +782,16 @@ export default function CreateEventPage() {
 											value={formData.prizePool}
 											onChange={handleChange}
 											placeholder="0.0"
-											className={`pl-10 ${errors.prizePool ? 'border-red-500' : ''}`}
+											className={`pl-10 bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600 ${errors.prizePool ? 'border-red-500' : ''}`}
 										/>
 									</div>
 									{errors.prizePool && (
-										<p className="text-sm text-red-600">{errors.prizePool}</p>
+										<p className="text-sm text-red-400">{errors.prizePool}</p>
 									)}
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="numberOfPrizes">Number of Prizes</Label>
+									<Label htmlFor="numberOfPrizes" className="text-gray-200">Number of Prizes</Label>
 									<Input
 										id="numberOfPrizes"
 										name="numberOfPrizes"
@@ -772,31 +799,31 @@ export default function CreateEventPage() {
 										value={formData.numberOfPrizes}
 										onChange={handleChange}
 										placeholder="1"
+										className="bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-gray-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-gray-600"
 									/>
 								</div>
 							</div>
 
 							{/* Wallet Connection Section */}
 							{formData.prizePool && parseFloat(formData.prizePool) > 0 && (
-								<div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
+								<div className="border rounded-lg p-4 bg-blue-900/20 border-blue-500/30 backdrop-blur-sm">
 									<div className="flex items-center space-x-2 mb-4">
-										<Lock className="w-5 h-5 text-blue-600" />
-										<h3 className="font-semibold text-blue-900">Blockchain Integration Required</h3>
+										<Lock className="w-5 h-5 text-blue-400" />
+										<h3 className="font-semibold text-blue-300">Blockchain Integration Required</h3>
 									</div>
 
 									{!walletConnected ? (
 										<div className="space-y-3">
 											<div className="flex items-start space-x-2">
-												<AlertCircle className="w-4 h-4 text-blue-600 mt-0.5" />
-												<p className="text-sm text-blue-800">
+												<AlertCircle className="w-4 h-4 text-blue-400 mt-0.5" />
+												<p className="text-sm text-blue-200">
 													Connect your wallet to lock prize pool funds in smart contract
 												</p>
 											</div>
 											<Button 
 												type="button"
 												onClick={connectWallet}
-												variant="outline"
-												className="border-blue-300 text-blue-700 hover:bg-blue-100"
+												className="bg-[#E94042] hover:bg-[#E94042]/90 text-white"
 											>
 												<Wallet className="w-4 h-4 mr-2" />
 												Connect MetaMask
@@ -806,16 +833,16 @@ export default function CreateEventPage() {
 										<div className="space-y-3">
 											<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 												<div>
-													<p className="text-blue-700 font-medium">Connected Wallet:</p>
-													<p className="text-blue-900 font-mono text-xs break-all">{walletAddress}</p>
+													<p className="text-blue-300 font-medium">Connected Wallet:</p>
+													<p className="text-blue-200 font-mono text-xs break-all">{walletAddress}</p>
 												</div>
 												<div>
-													<p className="text-blue-700 font-medium">Contract Balance:</p>
-													<p className="text-blue-900 font-semibold">{contractBalance} AVAX</p>
+													<p className="text-blue-300 font-medium">Contract Balance:</p>
+													<p className="text-blue-200 font-semibold">{contractBalance} AVAX</p>
 												</div>
 											</div>
-											<div className="bg-blue-100 rounded p-3">
-												<p className="text-xs text-blue-800">
+											<div className="bg-blue-800/30 rounded p-3">
+												<p className="text-xs text-blue-200">
 													<Lock className="w-3 h-3 inline mr-1" />
 													{formData.prizePool} AVAX will be locked in smart contract: {CONTRACT_ADDRESS}
 												</p>
@@ -823,7 +850,7 @@ export default function CreateEventPage() {
 										</div>
 									)}
 									{errors.wallet && (
-										<p className="text-sm text-red-600 mt-2">{errors.wallet}</p>
+										<p className="text-sm text-red-400 mt-2">{errors.wallet}</p>
 									)}
 								</div>
 							)}
@@ -831,11 +858,12 @@ export default function CreateEventPage() {
 					</Card>
 
 					{/* Form Actions */}
-					<div className="flex items-center justify-between pt-6 border-t">
+					<div className="flex items-center justify-between pt-6 border-t border-gray-600">
 						<Button 
 							type="button"
 							variant="outline"
 							onClick={() => router.back()}
+							className="border-gray-900 text-gray-300 text-black"
 						>
 							Cancel
 						</Button>
@@ -843,7 +871,7 @@ export default function CreateEventPage() {
 						<Button 
 							type="submit"
 							disabled={isSubmitting || lockingFunds}
-							className="bg-black hover:bg-gray-800"
+							className="bg-[#E94042] hover:bg-[#E94042]/90 text-white"
 						>
 							{lockingFunds ? (
 								<>

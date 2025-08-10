@@ -73,7 +73,7 @@ export default function HomePage() {
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
-      window.location.href = '/event';
+      window.location.href = '/explore';
     } else {
       window.location.href = '/auth/login';
     }
@@ -90,7 +90,6 @@ export default function HomePage() {
       window.location.href = '/auth/login';
     }
   };
-
   return (
     <div className="min-h-screen bg-[#161616]">
       {/* Hero Section */}
@@ -262,7 +261,7 @@ export default function HomePage() {
             ) : featuredEvents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
                 {featuredEvents.map((event) => (
-                  <Card key={event.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-[#1D1D1D]/90 backdrop-blur-sm border border-white/10">
+                  <Card key={event.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-[#1D1D1D]/90 backdrop-blur-sm border border-white/10 p-0">
                     <div className="relative h-48 sm:h-56">
                       <img
                         src={event.image}
@@ -291,7 +290,7 @@ export default function HomePage() {
                         {event.prizePool && (
                           <div className="flex items-center space-x-1 font-semibold text-green-400">
                             <DollarSign className="w-4 h-4" />
-                            <span>${event.prizePool.toLocaleString()} prizes</span>
+                            <span>{event.prizePool.toLocaleString()} AVAX</span>
                           </div>
                         )}
                       </div>
@@ -344,40 +343,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-black text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
-          <h2 className="text-3xl sm:text-4xl font-bold">
-            Ready to Start Your Journey?
-          </h2>
-
-          <p className="text-xl text-gray-300 leading-relaxed">
-            Join thousands of participants who are already discovering amazing events,
-            winning prizes, and building meaningful connections.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={handleGetStarted}
-              size="lg"
-              variant="secondary"
-              className="px-8 py-4 text-lg bg-white text-black hover:bg-gray-100"
-            >
-              {isAuthenticated ? 'Explore Events' : 'Sign Up Now'}
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-
-            <Button
-              onClick={handleExploreEvents}
-              variant="outline"
-              size="lg"
-              className="px-8 py-4 text-lg border-white text-white hover:bg-white hover:text-black"
-            >
-              Browse Events
-            </Button>
+      {/* Footer */}
+      <footer className="bg-black text-white py-8 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-4">
+          
+            
+            <div className="pt-6 border-gray-800 text-sm text-gray-500">
+              <p>&copy; 2024 Event Platform. All rights reserved.</p>
+            </div>
           </div>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }
