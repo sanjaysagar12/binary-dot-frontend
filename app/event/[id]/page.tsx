@@ -559,7 +559,7 @@ export default function EventDetailPage() {
     <div className="min-h-screen bg-[#161616] relative overflow-hidden">
       {/* Background Image */}
       <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat opacity-50"
         style={{
           backgroundImage: `url('/Avalink.webp')`,
           backgroundSize: 'cover',
